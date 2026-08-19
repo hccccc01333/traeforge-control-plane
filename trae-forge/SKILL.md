@@ -1,11 +1,11 @@
 ---
 name: trae-forge
-description: 本地优先的 TRAE 能力包与插件管理器。用于扫描、预检、诊断、校验、导出、生成 JSON 报告、预览安装和比较项目中的 Skills、Rules、MCP、脚本与模板，并管理 .trae-plugin 插件包；默认不删除文件，安装默认只预览。
+description: 本地优先的 TRAE Agent 能力控制台。用于扫描、预检、诊断、校验、导出、生成 JSON 报告、预览安装和比较项目中的 Skills、Rules、MCP、脚本与模板，并管理 .trae-plugin 分发包；默认不删除文件，安装默认只预览。
 ---
 
 # TraeForge
 
-TraeForge 是一个面向 TRAE CN 的本地能力包和插件管理 Skill。它把项目中的 `.trae/skills`、`.trae/rules`、`.trae/mcp.json`、`AGENTS.md`、脚本和模板整理成可审查的 `.traepack` 文件，也提供 `.trae-plugin` 插件包，把 Skill、Rules、MCP 配置和二进制工具统一分发。
+TraeForge 是一个面向 TRAE CN 的本地 Agent 能力控制台 Skill。它把项目中的 `.trae/skills`、`.trae/rules`、`.trae/mcp.json`、`AGENTS.md`、脚本和模板整理成可审查的 `.traepack` 文件，并提供 `.trae-plugin` 分发模块，把 Skill、Rules、MCP 配置和二进制工具统一分发。
 
 ## 安全边界
 
@@ -61,6 +61,9 @@ pwsh -File scripts/traeplugin.ps1 -Command install -PluginPath .\my-plugin.trae-
 
 # 诊断“为什么当前 Agent 可能看不到能力”
 pwsh -File scripts/traepack.ps1 -Command preflight -ProjectPath (Get-Location).Path -IncludeTraeGlobal -Json
+
+# 生成 .trae/traeforge/contracts.json 后，验收规则、Skill、MCP 和工作流后置条件
+# Contract Test 的 PASS 只代表可观察检查全部通过；日志没有证据时会返回 UNKNOWN。
 
 # 预览安装；不写入文件
 pwsh -File scripts/traepack.ps1 -Command install -PackPath .\my-agent.traepack -ProjectPath (Get-Location).Path

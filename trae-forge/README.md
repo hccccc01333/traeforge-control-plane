@@ -1,6 +1,8 @@
-# TraeForge V0.6
+# TraeForge V0.7
 
-TraeForge 是一个安装在 TRAE CN 本地的 Skill 和 Control Plane 原型，用来盘点、诊断、分发和管理 Skills、Rules、MCP 以及 CLI 工具。
+Skill、Rule、MCP 明明装了，TRAE 为什么还是不会用？TraeForge 用一套 Control Plane 把能力从“文件存在”追踪到“运行时调用”，再用 Contract Test 验收可观察结果。
+
+TraeForge 是安装在 TRAE CN 本地的能力控制台原型，用来盘点、诊断、分发和管理 Skills、Rules、MCP 以及 CLI 工具。
 
 ## 本机安装位置
 
@@ -31,6 +33,7 @@ C:\Users\Hzz\.trae-cn\skills\trae-forge\
 - TRAE Activity Bar 中的 `TraeForge Control Plane` UI
 - 当前项目 stdio MCP 的运行时工具列表探测
 - 读取 TRAE 日志并生成脱敏运行时证据摘要
+- Contract Test：用控制任务和可观察后置条件验收 Rule、Skill、MCP 和工作流
 
 ## 当前不做
 

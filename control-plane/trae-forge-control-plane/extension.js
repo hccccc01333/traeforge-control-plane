@@ -5,6 +5,7 @@ const path = require('path');
 const { probeProjectMcp } = require('./mcpProbe');
 const { readTraeRuntimeEvidence } = require('./runtimeEvidence');
 const { decodePowerShellOutput } = require('./powerShellEncoding');
+const { loadContract, evaluateContracts } = require('./contractTest');
 
 const USER_HOME = process.env.USERPROFILE || process.env.HOME || '';
 const SKILL_SCRIPT = path.join(USER_HOME, '.trae-cn', 'skills', 'trae-forge', 'scripts', 'traepack.ps1');
@@ -136,6 +137,8 @@ class ControlPlaneViewProvider {
           await this.probeMcp();
         } else if (message.type === 'runtime') {
           await this.readRuntimeEvidence();
+        } else if (message.type === 'contract') {
+          await this.runContracts();
         }
       } catch (error) {
         this.post({ type: 'notice', level: 'error', text: error.message || String(error) });
@@ -199,6 +202,31 @@ class ControlPlaneViewProvider {
     this.post({ type: 'runtime', evidence });
   }
 
+  async runContracts() {
+    const projectPath = workspacePath();
+    const loaded = loadContract(projectPath);
+    if (loaded.status === 'not-configured' || loaded.status === 'invalid') {
+      this.post({ type: 'contract', result: evaluateContracts(projectPath) });
+      return;
+    }
+    const needsMcpProbe = loaded.manifest.tests.some((test) => (test.checks || []).some((check) => check.type === 'tool-exposed'));
+    let mcpProbe = null;
+    if (needsMcpProbe) {
+      const answer = await vscode.window.showWarningMessage(
+        '契约包含 MCP 暴露检查。将启动当前项目 stdio MCP，只发送 initialize/tools/list，不调用业务工具。是否继续？',
+        { modal: true },
+        '运行契约验收'
+      );
+      if (answer !== '运行契约验收') {
+        this.post({ type: 'notice', level: 'info', text: '已取消契约验收。' });
+        return;
+      }
+      mcpProbe = await probeProjectMcp(projectPath);
+    }
+    const result = evaluateContracts(projectPath, { runtimeEvidence: readTraeRuntimeEvidence(), mcpProbe });
+    this.post({ type: 'contract', result });
+  }
+
   html(webview) {
     const nonce = `${Date.now()}${Math.random().toString(16).slice(2)}`;
     const csp = `default-src 'none'; style-src 'unsafe-inline'; script-src 'nonce-${nonce}';`;
@@ -239,8 +267,8 @@ tr:last-child td { border-bottom:0; }
 </head>
 <body>
 <h1>TraeForge Control Plane</h1>
-<div class="sub">单循环主模式 · 能力可见性诊断 · 运行时日志证据 <span class="badge">用户痛点预检 V0.6.1</span></div>
-<div class="toolbar"><button class="primary" id="refresh">刷新能力</button><button id="runtime">读取 TRAE 日志</button><button id="probe">探测 MCP 工具</button><button id="install">安装 .trae-plugin</button><button id="report">生成 JSON 报告</button></div>
+<div class="sub">单循环主模式 · 能力可见性诊断 · 契约验收 <span class="badge">用户痛点预检 V0.7</span></div>
+<div class="toolbar"><button class="primary" id="refresh">刷新能力</button><button id="runtime">读取 TRAE 日志</button><button id="contract">契约验收</button><button id="probe">探测 MCP 工具</button><button id="install">安装 .trae-plugin</button><button id="report">生成 JSON 报告</button></div>
 <div id="notice" class="notice">正在读取当前项目和 TRAE 全局能力……</div>
 <div id="cards" class="cards"></div>
 <h2>有效能力预览</h2>
@@ -249,6 +277,8 @@ tr:last-child td { border-bottom:0; }
 <div id="probeResult" class="panel"><div class="empty">点击“探测 MCP 工具”，查看当前项目 Server 实际返回的工具。</div></div>
 <h2>运行时证据（只读摘要）</h2>
 <div id="runtimeResult" class="panel"><div class="empty">点击“读取 TRAE 日志”，查看规则发现和已发生工具调用的摘要。</div></div>
+<h2>Contract Test</h2>
+<div id="contractResult" class="panel"><div class="empty">在项目 .trae/traeforge/contracts.json 配置契约后，验收规则发现、Skill 文件、MCP 暴露、工具调用和文件后置条件。</div></div>
 <h2>已注册本地插件</h2>
 <div id="plugins" class="panel"><div class="empty">暂无插件注册记录。</div></div>
 <h2>为什么可能不可用</h2>
@@ -311,12 +341,32 @@ function renderRuntime(evidence) {
   $('runtimeResult').innerHTML = '<div class="notice success">日志会话：'+esc((evidence.source && evidence.source.session) || 'unknown')+'；读取文件：'+esc((evidence.source && evidence.source.filesRead) || 0)+' 个</div><table><thead><tr><th>证据项</th><th>状态</th><th>结果</th><th>来源</th></tr></thead><tbody>'+rows.map((row) => '<tr><td>'+esc(row[0])+'</td><td>'+esc(row[1])+'</td><td>'+esc(row[2])+'</td><td>'+esc(row[3])+'</td></tr>').join('')+'</tbody></table><div class="notice">'+(evidence.limitations || []).map(esc).join('<br>')+'</div>';
   notice('已读取 TRAE 日志摘要：规则加载证据 '+(rules.status === 'observed' ? '已发现' : '未发现')+'，模型遵守状态仍需行为验收。', 'info');
 }
+function statusClass(status) { return status === 'pass' ? 'success' : status === 'fail' ? 'error' : ''; }
+function renderContracts(result) {
+  if (!result || result.status === 'not-configured') {
+    $('contractResult').innerHTML = '<div class="empty">'+esc((result && result.error) || '未配置契约文件。')+'<br><span class="label">示例路径：.trae/traeforge/contracts.json</span></div>';
+    return;
+  }
+  if (result.status === 'invalid') {
+    $('contractResult').innerHTML = '<div class="notice error">'+esc(result.error)+'</div>';
+    return;
+  }
+  const summary = result.summary || {};
+  const tests = (result.tests || []).map((test) => {
+    const checks = (test.checks || []).map((check) => '<div class="notice '+statusClass(check.status)+'"><strong>'+esc(check.status.toUpperCase())+'</strong> · '+esc(check.type)+'<br>'+esc(check.detail)+'</div>').join('');
+    const prompt = test.prompt ? '<div class="label">控制任务：'+esc(test.prompt)+'</div>' : '';
+    return '<tr><td>'+esc(test.id)+'</td><td>'+esc(test.kind)+'</td><td>'+esc(test.status)+'</td><td>'+esc(test.description)+prompt+checks+'</td></tr>';
+  }).join('');
+  $('contractResult').innerHTML = '<div class="notice '+statusClass(summary.overall)+'"><strong>总体：'+esc((summary.overall || 'unknown').toUpperCase())+'</strong> · 通过 '+esc(summary.pass)+' · 失败 '+esc(summary.fail)+' · 未知 '+esc(summary.unknown)+'</div><table><thead><tr><th>ID</th><th>类型</th><th>状态</th><th>检查结果</th></tr></thead><tbody>'+tests+'</tbody></table>';
+  notice('契约验收完成：'+(summary.overall || 'unknown').toUpperCase()+'。只有所有检查通过才会显示 PASS。', summary.overall === 'pass' ? 'success' : summary.overall === 'fail' ? 'error' : 'info');
+}
 $('refresh').onclick = () => vscode.postMessage({type:'refresh'});
 $('runtime').onclick = () => vscode.postMessage({type:'runtime'});
+$('contract').onclick = () => vscode.postMessage({type:'contract'});
 $('probe').onclick = () => vscode.postMessage({type:'probe'});
 $('install').onclick = () => vscode.postMessage({type:'install'});
 $('report').onclick = () => vscode.postMessage({type:'report'});
-window.addEventListener('message', (event) => { const message = event.data; if(message.type === 'loading') notice('正在扫描当前项目和 TRAE 全局能力……'); if(message.type === 'data') render(message); if(message.type === 'probe') renderProbe(message.probe); if(message.type === 'runtime') renderRuntime(message.evidence); if(message.type === 'notice') notice(message.text, message.level); });
+window.addEventListener('message', (event) => { const message = event.data; if(message.type === 'loading') notice('正在扫描当前项目和 TRAE 全局能力……'); if(message.type === 'data') render(message); if(message.type === 'probe') renderProbe(message.probe); if(message.type === 'runtime') renderRuntime(message.evidence); if(message.type === 'contract') renderContracts(message.result); if(message.type === 'notice') notice(message.text, message.level); });
 </script>
 </body>
 </html>`;

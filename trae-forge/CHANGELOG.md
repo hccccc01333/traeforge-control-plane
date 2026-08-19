@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.7.0 — 2026-08-19
+
+- Added Contract Test manifests under `.trae/traeforge/contracts.json`.
+- Added staged PASS/FAIL/UNKNOWN checks for Rule discovery, Skill files, MCP tool exposure, observed tool calls, and file postconditions.
+- Added Control Plane UI for controlled-task prompts and observable contract results; unknown runtime behavior is never promoted to PASS.
+- Unified public product messaging around the TRAE Agent Capability Control Plane.
+
 ## 0.6.1 — 2026-08-19
 
 - Fixed Control Plane PowerShell JSON decoding so Chinese diagnostics remain readable across Windows code pages.

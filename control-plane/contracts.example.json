@@ -1,0 +1,26 @@
+{
+  "schemaVersion": 1,
+  "name": "my-trae-capability-contracts",
+  "tests": [
+    {
+      "id": "python-rule-postcondition",
+      "kind": "rule",
+      "description": "规则发现后，生成的 Python 文件必须包含类型标注。",
+      "prompt": "请创建 add.py，并为函数参数和返回值添加类型标注。",
+      "checks": [
+        { "type": "rule-discovered", "scope": "project" },
+        { "type": "file-content", "path": "add.py", "pattern": "def\\s+add\\([^)]*:.*\\).*->" }
+      ]
+    },
+    {
+      "id": "calculator-tool-call",
+      "kind": "mcp",
+      "description": "MCP 工具必须被暴露，并在控制任务中实际调用。",
+      "prompt": "请调用 calculator.add(2, 3)，并只返回结果。",
+      "checks": [
+        { "type": "tool-exposed", "server": "calculator", "tool": "add" },
+        { "type": "tool-called", "tool": "add" }
+      ]
+    }
+  ]
+}

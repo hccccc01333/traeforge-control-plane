@@ -1,5 +1,5 @@
 ---
-name: example-enterprise-tool
+name: example-review-tool
 description: 示例 TRAE 插件 Skill。用户需要代码审查工具时使用。
 ---
 

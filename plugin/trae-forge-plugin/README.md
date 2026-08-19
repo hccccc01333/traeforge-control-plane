@@ -1,6 +1,6 @@
-# TraeForge Plugin V0.5
+# TraeForge Plugin V0.7
 
-这是一个本地优先的 TRAE 插件机制原型。插件包扩展名为 `.trae-plugin`，内部是 ZIP，统一携带：
+这是一个本地优先的 TRAE 插件分发模块原型，不是 TraeForge 的主产品叙事。插件包扩展名为 `.trae-plugin`，内部是 ZIP，统一携带：
 
 - `skills/`：一个或多个 `SKILL.md`
 - `rules/`：项目级规则
