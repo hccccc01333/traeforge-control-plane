@@ -1,0 +1,15 @@
+{
+  "id": "acme.example-tool",
+  "name": "Example Enterprise Tool",
+  "version": "0.1.0",
+  "description": "企业内部 TRAE 能力插件示例",
+  "publisher": "Acme",
+  "license": "内部使用",
+  "capabilities": ["skills", "rules", "mcp", "binaries"],
+  "components": {
+    "skills": ["skills/example/SKILL.md"],
+    "rules": ["rules/example.md"],
+    "mcp": ["mcp/mcp.json"],
+    "binaries": []
+  }
+}

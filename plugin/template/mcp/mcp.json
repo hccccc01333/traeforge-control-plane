@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "acme-example": {
+      "command": "${pluginRoot}/payload/bin/example-mcp.exe",
+      "args": []
+    }
+  }
+}
