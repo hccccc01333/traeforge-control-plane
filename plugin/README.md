@@ -1,4 +1,4 @@
-# TraeForge Plugin V0.7
+# TraeForge Plugin V0.8
 
 这是一个本地优先的 TRAE 插件分发模块原型，不是 TraeForge 的主产品叙事。插件包扩展名为 `.trae-plugin`，内部是 ZIP，统一携带：
 

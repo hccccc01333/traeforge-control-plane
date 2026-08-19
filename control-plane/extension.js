@@ -6,6 +6,7 @@ const { probeProjectMcp } = require('./mcpProbe');
 const { readTraeRuntimeEvidence } = require('./runtimeEvidence');
 const { decodePowerShellOutput } = require('./powerShellEncoding');
 const { loadContract, evaluateContracts } = require('./contractTest');
+const { createDoctorHtml } = require('./doctorHtml');
 
 const USER_HOME = process.env.USERPROFILE || process.env.HOME || '';
 const SKILL_SCRIPT = path.join(USER_HOME, '.trae-cn', 'skills', 'trae-forge', 'scripts', 'traepack.ps1');
@@ -114,6 +115,27 @@ async function listPlugins() {
   return JSON.parse(output);
 }
 
+function safeSkillName(name) {
+  return typeof name === 'string' && name.trim() && !/[\\/:*?"<>|]/.test(name) && name !== '.' && name !== '..';
+}
+
+function copyGlobalSkillToProject(name, projectPath) {
+  if (!safeSkillName(name)) throw new Error('Skill 名称不安全，已取消修复。');
+  const source = path.join(USER_HOME, '.trae-cn', 'skills', name);
+  const target = path.join(projectPath, '.trae', 'skills', name);
+  const skillFile = path.join(source, 'SKILL.md');
+  if (!fs.existsSync(skillFile)) throw new Error(`找不到全局 Skill：${name}`);
+  fs.mkdirSync(path.dirname(target), { recursive: true });
+  if (fs.existsSync(target)) {
+    const stamp = new Date().toISOString().replace(/[.:]/g, '-');
+    const backup = path.join(projectPath, '.trae', 'traeforge', 'backups', 'doctor', stamp, name);
+    fs.mkdirSync(path.dirname(backup), { recursive: true });
+    fs.cpSync(target, backup, { recursive: true, force: true });
+  }
+  fs.cpSync(source, target, { recursive: true, force: true });
+  return target;
+}
+
 class ControlPlaneViewProvider {
   constructor(extensionUri) {
     this.extensionUri = extensionUri;
@@ -139,6 +161,8 @@ class ControlPlaneViewProvider {
           await this.readRuntimeEvidence();
         } else if (message.type === 'contract') {
           await this.runContracts();
+        } else if (message.type === 'repair') {
+          await this.autoRepair();
         }
       } catch (error) {
         this.post({ type: 'notice', level: 'error', text: error.message || String(error) });
@@ -154,7 +178,8 @@ class ControlPlaneViewProvider {
   async refresh() {
     this.post({ type: 'loading' });
     const [scan, preflight, plugins] = await Promise.all([runScan(), runPreflight(), listPlugins()]);
-    this.post({ type: 'data', scan, preflight, plugins });
+    const runtime = readTraeRuntimeEvidence();
+    this.post({ type: 'data', scan, preflight, plugins, runtime });
   }
 
   async pickAndInstall() {
@@ -227,7 +252,40 @@ class ControlPlaneViewProvider {
     this.post({ type: 'contract', result });
   }
 
+  async autoRepair() {
+    const preflight = await runPreflight();
+    const hasSkillInheritanceIssue = (preflight.diagnostics || []).some((item) => item.id === 'global-skill-inheritance-unknown');
+    if (!hasSkillInheritanceIssue) {
+      this.post({ type: 'notice', level: 'info', text: '当前问题没有安全的自动修复动作，请展开“查看技术详情”按建议处理。' });
+      return;
+    }
+    const globalSkills = (preflight.skills && preflight.skills.global) || [];
+    if (!globalSkills.length) {
+      this.post({ type: 'notice', level: 'info', text: '当前没有可自动复制到项目的全局 Skill。' });
+      return;
+    }
+    const selected = await vscode.window.showQuickPick(
+      globalSkills.map((item) => ({ label: item.name, description: '复制到当前项目 .trae/skills' })),
+      { placeHolder: '选择要复制到当前项目的 Skill' }
+    );
+    if (!selected) return;
+    const answer = await vscode.window.showWarningMessage(
+      `将把全局 Skill「${selected.label}」复制到当前项目。若目标已存在，会先备份到 .trae/traeforge/backups/doctor/。是否继续？`,
+      { modal: true },
+      '备份并复制'
+    );
+    if (answer !== '备份并复制') {
+      this.post({ type: 'notice', level: 'info', text: '已取消自动修复，没有写入文件。' });
+      return;
+    }
+    const target = copyGlobalSkillToProject(selected.label, workspacePath());
+    this.post({ type: 'notice', level: 'success', text: `已复制 Skill 到 ${target}。正在重新检测……` });
+    await this.refresh();
+  }
+
   html(webview) {
+    return createDoctorHtml(webview);
+    /* legacy Control Plane UI retained below for rollback reference */
     const nonce = `${Date.now()}${Math.random().toString(16).slice(2)}`;
     const csp = `default-src 'none'; style-src 'unsafe-inline'; script-src 'nonce-${nonce}';`;
     return `<!doctype html>

@@ -17,7 +17,7 @@ param(
 
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
-$script:PluginToolVersion = '0.7.0'
+$script:PluginToolVersion = '0.8.0'
 
 function Resolve-FullPath {
     param([Parameter(Mandatory)][string]$Path)

@@ -1,8 +1,8 @@
 {
   "name": "trae-forge-control-plane",
-  "displayName": "TraeForge Control Plane",
-  "description": "Local capability observability and file-level workflow control plane for TRAE.",
-  "version": "0.7.0",
+  "displayName": "TraeForge Doctor",
+  "description": "Diagnose and fix why TRAE Skills, Rules, and MCP do not work.",
+  "version": "0.8.0",
   "publisher": "traeforge-local",
   "private": true,
   "license": "MIT",
@@ -19,7 +19,7 @@
     "commands": [
       {
         "command": "traeforge.openControlPlane",
-        "title": "TraeForge: Open Control Plane",
+        "title": "TraeForge: Open Doctor",
         "category": "TraeForge"
       }
     ],
@@ -27,7 +27,7 @@
       "activitybar": [
         {
           "id": "traeforge",
-          "title": "TraeForge",
+          "title": "TraeForge Doctor",
           "icon": "./media/traeforge.svg"
         }
       ]
@@ -37,7 +37,7 @@
         {
           "type": "webview",
           "id": "traeforge.controlPlane",
-          "name": "Control Plane"
+          "name": "Doctor"
         }
       ]
     }

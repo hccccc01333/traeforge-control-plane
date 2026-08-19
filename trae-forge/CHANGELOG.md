@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.8.0 — 2026-08-19
+
+- 将 TRAE Activity Bar 入口重命名为 `TraeForge Doctor`。
+- 首屏压缩为当前状态、发现的问题、修复三个用户区域。
+- 将 Preflight、MCP Probe、Runtime Evidence、Contract Test 收进技术详情，底层能力继续保留。
+- 增加全局 Skill 复制到项目的安全修复动作，目标已存在时先备份。
+- 将 UNKNOWN、FAIL、PASS 翻译成“待确认、有问题、正常”等用户可读状态。
+
 ## 0.7.0 — 2026-08-19
 
 - Added Contract Test manifests under `.trae/traeforge/contracts.json`.

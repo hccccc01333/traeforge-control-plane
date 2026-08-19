@@ -143,7 +143,7 @@ function probeServer(server, projectPath) {
         params: {
           protocolVersion: '2024-11-05',
           capabilities: {},
-          clientInfo: { name: 'traeforge-preflight', version: '0.7.0' }
+          clientInfo: { name: 'traeforge-doctor', version: '0.8.0' }
         }
       });
       timer = setTimeout(() => finish('timeout', 'MCP 探针超时；服务器没有在限定时间内返回 initialize/tools/list。'), PROBE_TIMEOUT_MS);

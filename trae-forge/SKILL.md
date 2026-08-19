@@ -1,6 +1,6 @@
 ---
 name: trae-forge
-description: 本地优先的 TRAE Agent 能力控制台。用于扫描、预检、诊断、校验、导出、生成 JSON 报告、预览安装和比较项目中的 Skills、Rules、MCP、脚本与模板，并管理 .trae-plugin 分发包；默认不删除文件，安装默认只预览。
+description: TraeForge Doctor 的本地诊断引擎。用于检查、诊断、校验、导出、生成 JSON 报告、预览安装和比较项目中的 Skills、Rules、MCP、脚本与模板，并管理 .trae-plugin 分发包；默认不删除文件，安装默认只预览。
 ---
 
 # TraeForge
