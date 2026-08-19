@@ -10,9 +10,9 @@
 
 ## Status
 
-Current baseline: `v0.5.0`.
+Current baseline: `v0.6.0`.
 
-The current UI provides static preflight diagnostics for project/global splits, tool-budget risk, duplicate MCP metadata, and the runtime boundary. It also offers an explicit-confirmation stdio MCP probe that sends only `initialize` and `tools/list`, showing the actual tool names and failure reason without invoking business tools. Agent routing and MTC/CODE context continuity remain the next upgrade target.
+The current UI provides static preflight diagnostics for project/global splits, tool-budget risk, duplicate MCP metadata, and the runtime boundary. It also offers an explicit-confirmation stdio MCP probe that sends only `initialize` and `tools/list`, plus a redacted TRAE log evidence summary for rule discovery, MCP toolhost state, and observed tool calls. Agent compliance and the final complete tool set remain explicit unknowns when TRAE does not log them.
 
 ## Safety
 

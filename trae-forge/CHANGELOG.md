@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.6.0 — 2026-08-19
+
+- Added a read-only, redacted TRAE runtime evidence summary for rule discovery, MCP toolhost state, and observed tool calls.
+- Added Control Plane UI for log evidence with explicit unknown states for model compliance and the final tool set.
+
 ## 0.5.0 — 2026-08-19
 
 - Added a safe stdio MCP runtime probe using `initialize` and `tools/list` only.

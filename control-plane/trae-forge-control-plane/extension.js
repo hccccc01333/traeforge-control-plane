@@ -3,6 +3,7 @@ const cp = require('child_process');
 const fs = require('fs');
 const path = require('path');
 const { probeProjectMcp } = require('./mcpProbe');
+const { readTraeRuntimeEvidence } = require('./runtimeEvidence');
 
 const USER_HOME = process.env.USERPROFILE || process.env.HOME || '';
 const SKILL_SCRIPT = path.join(USER_HOME, '.trae-cn', 'skills', 'trae-forge', 'scripts', 'traepack.ps1');
@@ -130,6 +131,8 @@ class ControlPlaneViewProvider {
           await this.pickAndInstall();
         } else if (message.type === 'probe') {
           await this.probeMcp();
+        } else if (message.type === 'runtime') {
+          await this.readRuntimeEvidence();
         }
       } catch (error) {
         this.post({ type: 'notice', level: 'error', text: error.message || String(error) });
@@ -187,6 +190,12 @@ class ControlPlaneViewProvider {
     this.post({ type: 'probe', probe });
   }
 
+  async readRuntimeEvidence() {
+    this.post({ type: 'notice', level: 'info', text: '正在读取 TRAE 最新日志，只生成脱敏摘要……' });
+    const evidence = readTraeRuntimeEvidence();
+    this.post({ type: 'runtime', evidence });
+  }
+
   html(webview) {
     const nonce = `${Date.now()}${Math.random().toString(16).slice(2)}`;
     const csp = `default-src 'none'; style-src 'unsafe-inline'; script-src 'nonce-${nonce}';`;
@@ -227,14 +236,16 @@ tr:last-child td { border-bottom:0; }
 </head>
 <body>
 <h1>TraeForge Control Plane</h1>
-<div class="sub">单循环主模式 · 能力可见性诊断 · 本地插件机制 <span class="badge">用户痛点预检 V0.5</span></div>
-<div class="toolbar"><button class="primary" id="refresh">刷新能力</button><button id="probe">探测 MCP 工具</button><button id="install">安装 .trae-plugin</button><button id="report">生成 JSON 报告</button></div>
+<div class="sub">单循环主模式 · 能力可见性诊断 · 运行时日志证据 <span class="badge">用户痛点预检 V0.6</span></div>
+<div class="toolbar"><button class="primary" id="refresh">刷新能力</button><button id="runtime">读取 TRAE 日志</button><button id="probe">探测 MCP 工具</button><button id="install">安装 .trae-plugin</button><button id="report">生成 JSON 报告</button></div>
 <div id="notice" class="notice">正在读取当前项目和 TRAE 全局能力……</div>
 <div id="cards" class="cards"></div>
 <h2>有效能力预览</h2>
 <div id="capabilities" class="panel"><div class="empty">等待扫描结果。</div></div>
 <h2>运行时 MCP 探测</h2>
 <div id="probeResult" class="panel"><div class="empty">点击“探测 MCP 工具”，查看当前项目 Server 实际返回的工具。</div></div>
+<h2>运行时证据（只读摘要）</h2>
+<div id="runtimeResult" class="panel"><div class="empty">点击“读取 TRAE 日志”，查看规则发现和已发生工具调用的摘要。</div></div>
 <h2>已注册本地插件</h2>
 <div id="plugins" class="panel"><div class="empty">暂无插件注册记录。</div></div>
 <h2>为什么可能不可用</h2>
@@ -276,11 +287,33 @@ function renderProbe(probe) {
   $('probeResult').innerHTML = '<table><thead><tr><th>Server</th><th>状态</th><th>工具数</th><th>工具名</th><th>说明</th></tr></thead><tbody>'+rows+'</tbody></table>';
   notice('MCP 探测完成：'+(probe.summary.ok || 0)+' 个成功，返回 '+(probe.summary.tools || 0)+' 个工具。', probe.summary.ok === probe.summary.configured ? 'success' : 'info');
 }
+function renderRuntime(evidence) {
+  if (!evidence || evidence.status === 'no-logs') {
+    $('runtimeResult').innerHTML = '<div class="empty">'+esc((evidence && evidence.limitations && evidence.limitations[0]) || '没有找到 TRAE 日志。')+'</div>';
+    return;
+  }
+  const rules = evidence.rules || {};
+  const latest = rules.latest || {};
+  const mcp = evidence.mcp || {};
+  const toolCalls = mcp.toolCallsObserved || [];
+  const rows = [
+    ['规则发现', rules.status || 'unknown', latest.userRuleCount === null || latest.userRuleCount === undefined ? '未记录' : '用户规则 '+latest.userRuleCount+'，项目规则 '+latest.projectRuleCount, latest.location || 'rules_initial_load'],
+    ['规则注入当前上下文', rules.injectionIntoContext || 'unknown', '日志没有直接记录模型上下文注入', '未知'],
+    ['模型是否遵守规则', rules.modelCompliance || 'unknown', '需要对话行为验收，日志摘要不能证明', '未知'],
+    ['MCP Runtime', mcp.runtimeStatus || 'unknown', mcp.configurationMode || '配置模式未知', 'toolhost'],
+    ['已发生工具调用', String(toolCalls.reduce((sum, item) => sum + item.count, 0)), toolCalls.map((item) => item.name+' ×'+item.count).join(', ') || '未观察到', 'TransportManager'],
+    ['最终工具集合', mcp.finalToolSet || 'unknown', '已发生调用不等于完整可见集合', '未知'],
+    ['远程 MCP', mcp.remoteMcp || 'unknown', '当前日志摘要没有完整连接/工具列表', '未知']
+  ];
+  $('runtimeResult').innerHTML = '<div class="notice success">日志会话：'+esc((evidence.source && evidence.source.session) || 'unknown')+'；读取文件：'+esc((evidence.source && evidence.source.filesRead) || 0)+' 个</div><table><thead><tr><th>证据项</th><th>状态</th><th>结果</th><th>来源</th></tr></thead><tbody>'+rows.map((row) => '<tr><td>'+esc(row[0])+'</td><td>'+esc(row[1])+'</td><td>'+esc(row[2])+'</td><td>'+esc(row[3])+'</td></tr>').join('')+'</tbody></table><div class="notice">'+(evidence.limitations || []).map(esc).join('<br>')+'</div>';
+  notice('已读取 TRAE 日志摘要：规则加载证据 '+(rules.status === 'observed' ? '已发现' : '未发现')+'，模型遵守状态仍需行为验收。', 'info');
+}
 $('refresh').onclick = () => vscode.postMessage({type:'refresh'});
+$('runtime').onclick = () => vscode.postMessage({type:'runtime'});
 $('probe').onclick = () => vscode.postMessage({type:'probe'});
 $('install').onclick = () => vscode.postMessage({type:'install'});
 $('report').onclick = () => vscode.postMessage({type:'report'});
-window.addEventListener('message', (event) => { const message = event.data; if(message.type === 'loading') notice('正在扫描当前项目和 TRAE 全局能力……'); if(message.type === 'data') render(message); if(message.type === 'probe') renderProbe(message.probe); if(message.type === 'notice') notice(message.text, message.level); });
+window.addEventListener('message', (event) => { const message = event.data; if(message.type === 'loading') notice('正在扫描当前项目和 TRAE 全局能力……'); if(message.type === 'data') render(message); if(message.type === 'probe') renderProbe(message.probe); if(message.type === 'runtime') renderRuntime(message.evidence); if(message.type === 'notice') notice(message.text, message.level); });
 </script>
 </body>
 </html>`;
