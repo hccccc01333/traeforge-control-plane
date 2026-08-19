@@ -1,18 +1,18 @@
 # TraeForge Control Plane
 
-本项目是一个本地优先的 TRAE 企业插件机制原型：用一个 `.trae-plugin` 包统一分发 Skills、Rules、MCP 配置、二进制工具和资源，并通过 TRAE 内置的 Control Plane UI 做盘点、预览和安装。
+本项目是一个本地优先的 TRAE 痛点修复原型：把分散的 Skills、Rules、MCP 配置和运行时可见性，收敛到可检查、可预览、可回滚的工作流，并通过 TRAE 内置的 Control Plane UI 反馈“为什么当前能力可能不可用”。
 
 ## Components
 
 - `trae-forge/` — TRAE Skill、TraePack 能力包和静态能力盘点
-- `plugin/` — `.trae-plugin` 打包、校验、安装和版本注册工具
+- `plugin/` — `.trae-plugin` 打包、校验、安装和版本注册工具（用于降低重复配置成本，不绑定企业版）
 - `control-plane/` — TRAE VS Code-compatible Activity Bar UI 扩展
 
 ## Status
 
-Current baseline: `v0.4.0`.
+Current baseline: `v0.5.0`.
 
-The current UI provides static preflight diagnostics for project/global splits, tool-budget risk, duplicate MCP metadata, and the runtime boundary. Runtime MCP exposure, agent routing, and MTC/CODE context continuity remain the next upgrade target.
+The current UI provides static preflight diagnostics for project/global splits, tool-budget risk, duplicate MCP metadata, and the runtime boundary. It also offers an explicit-confirmation stdio MCP probe that sends only `initialize` and `tools/list`, showing the actual tool names and failure reason without invoking business tools. Agent routing and MTC/CODE context continuity remain the next upgrade target.
 
 ## Safety
 

@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.5.0 — 2026-08-19
+
+- Added a safe stdio MCP runtime probe using `initialize` and `tools/list` only.
+- Added Control Plane UI for MCP probe results, tool counts, tool names, and failure reasons.
+- Added explicit confirmation before starting configured MCP processes.
+
 ## 0.4.0 — 2026-08-19
 
 - Added `preflight` and `doctor` diagnostics for project/global capability splits.

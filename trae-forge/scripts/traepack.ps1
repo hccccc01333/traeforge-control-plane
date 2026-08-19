@@ -21,7 +21,7 @@ param(
 
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
-$script:TraeForgeVersion = '0.4.0'
+$script:TraeForgeVersion = '0.5.0'
 
 function Resolve-FullPath {
     param([Parameter(Mandatory)][string]$Path)
