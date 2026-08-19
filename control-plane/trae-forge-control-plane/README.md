@@ -1,4 +1,4 @@
-# TraeForge Control Plane V0.6
+# TraeForge Control Plane V0.6.1
 
 这是一个直接接入 TRAE 的本地扩展原型。它在 Activity Bar 增加 `TraeForge` 入口，提供：
 

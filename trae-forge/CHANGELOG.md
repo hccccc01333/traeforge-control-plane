@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.6.1 — 2026-08-19
+
+- Fixed Control Plane PowerShell JSON decoding so Chinese diagnostics remain readable across Windows code pages.
+
 ## 0.6.0 — 2026-08-19
 
 - Added a read-only, redacted TRAE runtime evidence summary for rule discovery, MCP toolhost state, and observed tool calls.

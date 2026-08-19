@@ -4,6 +4,7 @@ const fs = require('fs');
 const path = require('path');
 const { probeProjectMcp } = require('./mcpProbe');
 const { readTraeRuntimeEvidence } = require('./runtimeEvidence');
+const { decodePowerShellOutput } = require('./powerShellEncoding');
 
 const USER_HOME = process.env.USERPROFILE || process.env.HOME || '';
 const SKILL_SCRIPT = path.join(USER_HOME, '.trae-cn', 'skills', 'trae-forge', 'scripts', 'traepack.ps1');
@@ -31,16 +32,18 @@ function execPowerShell(args) {
         reject(new Error(`找不到 PowerShell 运行时。已探测：${uniqueCandidates.join('、')}`));
         return;
       }
-      cp.execFile(uniqueCandidates[index], ['-NoProfile', '-ExecutionPolicy', 'Bypass', ...args], { windowsHide: true, maxBuffer: 8 * 1024 * 1024 }, (error, stdout, stderr) => {
+      cp.execFile(uniqueCandidates[index], ['-NoProfile', '-ExecutionPolicy', 'Bypass', ...args], { windowsHide: true, maxBuffer: 8 * 1024 * 1024, encoding: 'buffer' }, (error, stdout, stderr) => {
         if (error && error.code === 'ENOENT') {
           run(index + 1);
           return;
         }
+        const decodedStdout = decodePowerShellOutput(stdout);
+        const decodedStderr = decodePowerShellOutput(stderr);
         if (error) {
-          reject(new Error((stderr || stdout || error.message).trim()));
+          reject(new Error((decodedStderr || decodedStdout || error.message).trim()));
           return;
         }
-        resolve((stdout || '').trim());
+        resolve(decodedStdout.trim());
       });
     };
     run(0);
@@ -236,7 +239,7 @@ tr:last-child td { border-bottom:0; }
 </head>
 <body>
 <h1>TraeForge Control Plane</h1>
-<div class="sub">单循环主模式 · 能力可见性诊断 · 运行时日志证据 <span class="badge">用户痛点预检 V0.6</span></div>
+<div class="sub">单循环主模式 · 能力可见性诊断 · 运行时日志证据 <span class="badge">用户痛点预检 V0.6.1</span></div>
 <div class="toolbar"><button class="primary" id="refresh">刷新能力</button><button id="runtime">读取 TRAE 日志</button><button id="probe">探测 MCP 工具</button><button id="install">安装 .trae-plugin</button><button id="report">生成 JSON 报告</button></div>
 <div id="notice" class="notice">正在读取当前项目和 TRAE 全局能力……</div>
 <div id="cards" class="cards"></div>

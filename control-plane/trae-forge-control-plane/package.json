@@ -2,7 +2,7 @@
   "name": "trae-forge-control-plane",
   "displayName": "TraeForge Control Plane",
   "description": "Local capability observability and file-level workflow control plane for TRAE.",
-  "version": "0.6.0",
+  "version": "0.6.1",
   "publisher": "traeforge-local",
   "private": true,
   "license": "MIT",
