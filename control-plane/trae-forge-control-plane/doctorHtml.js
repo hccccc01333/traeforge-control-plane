@@ -107,7 +107,7 @@ function buildState(data) {
   const projectMcp = Number(summary.projectMcpServers || 0);
   const globalMcp = Number(summary.globalMcpServers || 0);
   let mcpState = 'empty'; let mcpValue = projectMcp || globalMcp; let mcpNote = mcpValue ? '已发现配置，点击检查是否能启动' : '还没有 MCP';
-  if (lastProbe) { mcpValue = Number(lastProbe.summary && lastProbe.summary.configured || 0); mcpState = lastProbe.summary && lastProbe.summary.ok === lastProbe.summary.configured ? 'good' : 'bad'; mcpNote = mcpState === 'good' ? 'Server 启动并返回工具' : '至少一个 Server 启动失败'; } else if (mcpValue) mcpState = 'warn';
+  if (lastProbe) { mcpValue = Number(lastProbe.summary && lastProbe.summary.configured || 0); mcpState = lastProbe.summary && lastProbe.summary.ok === lastProbe.summary.configured ? 'good' : 'bad'; mcpNote = mcpState === 'good' ? 'Server 启动并返回工具' : '至少一个 Server 启动失败'; } else if ((data.mcpDiagnosis && data.mcpDiagnosis.issues || []).length) mcpState = 'bad'; else if (mcpValue) mcpState = 'warn';
   const problems = buildIssues(data);
   return { cards: [{label:'Skills',value:skillCount,state:skillState,note:skillNote},{label:'Rules',value:ruleCount,state:ruleState,note:ruleNote},{label:'MCP',value:mcpValue,state:mcpState,note:mcpNote},{label:'发现问题',value:problems.length,state:problems.length ? 'warn' : 'good',note:problems.length ? '需要处理' : '暂未发现问题'}], problems };
 }
@@ -122,12 +122,13 @@ function humanize(item) {
   };
   if (map[item.id]) return { id:item.id, severity:item.severity, title:map[item.id][0], detail:map[item.id][1], action:map[item.id][2] };
   if (/^duplicate-mcp-/.test(item.id)) return { id:item.id, severity:item.severity, title:'MCP 名称重复，来源可能冲突', detail:item.detail, action:'保留一个来源，或在当前项目明确指定。' };
-  return { id:item.id, severity:item.severity, title:item.title, detail:item.detail, action:item.action };
+  return { id:item.id, severity:item.severity, title:item.title, detail:item.detail, action:item.action, repairKind:item.repairKind || null, server:item.server || null };
 }
 function buildIssues(data) {
   const preflight = data.preflight || {};
   const diagnostics = (preflight.diagnostics || []).filter((item) => item.severity === 'warning' || item.severity === 'error').map(humanize);
-  if (lastProbe && lastProbe.results) lastProbe.results.filter((item) => item.status !== 'ok').forEach((item) => diagnostics.push({id:'mcp-probe-'+item.server,severity:'error',title:item.server+' MCP 不可用',detail:item.error || 'Server 没有正常返回工具列表。',action:'检查 command、Node.js 和 PATH 后重新检测。'}));
+  if (data.mcpDiagnosis && data.mcpDiagnosis.status === 'issues') (data.mcpDiagnosis.issues || []).forEach((item) => diagnostics.push(humanize(item)));
+  if (lastProbe && lastProbe.results) lastProbe.results.filter((item) => item.status !== 'ok').forEach((item) => { if (!diagnostics.some((existing) => existing.server === item.server && existing.severity === 'error')) diagnostics.push({id:'mcp-probe-'+item.server,severity:'error',title:item.server+' MCP 不可用',detail:item.error || 'Server 没有正常返回工具列表。',action:'检查 command、Node.js 和 PATH 后重新检测。',repairKind:'mcp-command',server:item.server}); });
   return diagnostics;
 }
 function render(data) {
@@ -135,7 +136,7 @@ function render(data) {
   const state = buildState(data);
   $('cards').innerHTML = state.cards.map(cardHtml).join('');
   if (!state.problems.length) $('issues').innerHTML = '<div class="emptyBox"><strong>暂未发现明确问题</strong><br>如果你仍然觉得能力没有生效，请展开“查看技术详情”做一次 MCP 检查或实际效果验收。</div>';
-  else $('issues').innerHTML = state.problems.map((item) => '<article class="issue '+esc(item.severity)+'"><div class="issueIcon '+(item.severity === 'error' ? 'bad' : 'warn')+'">'+(item.severity === 'error' ? '✕' : '⚠')+'</div><div class="issueBody"><div class="issueTitle">'+esc(item.title)+'<span class="tag">'+(item.severity === 'error' ? '发现问题' : '需要确认')+'</span></div><div class="issueDetail">'+esc(item.detail)+'</div><div class="issueAction">建议：'+esc(item.action)+'</div><div class="issueTools"><button class="ghost" data-details="true">查看原因</button>'+(item.id === 'global-skill-inheritance-unknown' ? '<button data-repair="true">复制 Skill 到项目</button>' : '')+'</div></div></article>').join('');
+  else $('issues').innerHTML = state.problems.map((item) => '<article class="issue '+esc(item.severity)+'"><div class="issueIcon '+(item.severity === 'error' ? 'bad' : 'warn')+'">'+(item.severity === 'error' ? '✕' : '⚠')+'</div><div class="issueBody"><div class="issueTitle">'+esc(item.title)+'<span class="tag">'+(item.severity === 'error' ? '发现问题' : '需要确认')+'</span></div><div class="issueDetail">'+esc(item.detail)+'</div><div class="issueAction">建议：'+esc(item.action)+'</div><div class="issueTools"><button class="ghost" data-details="true">查看原因</button>'+(item.id === 'global-skill-inheritance-unknown' ? '<button data-repair="true">复制 Skill 到项目</button>' : item.repairKind ? '<button data-repair="true" data-repair-kind="'+esc(item.repairKind)+'" data-server="'+esc(item.server || '')+'">预览修复</button>' : '')+'</div></div></article>').join('');
   const capabilities = (data.preflight && data.preflight.capabilities) || [];
   $('capabilities').innerHTML = '<table><thead><tr><th>能力</th><th>数量</th><th>状态</th><th>说明</th></tr></thead><tbody>'+capabilities.map((item) => '<tr><td>'+esc(item.label)+'</td><td>'+esc(item.count)+'</td><td>'+esc(item.status)+'</td><td>'+esc(item.why)+'</td></tr>').join('')+'</tbody></table>';
   const plugins = (data.plugins && data.plugins.plugins) || [];
@@ -171,7 +172,7 @@ $('runtime').onclick = () => vscode.postMessage({type:'runtime'});
 $('contract').onclick = () => vscode.postMessage({type:'contract'});
 $('install').onclick = () => vscode.postMessage({type:'install'});
 $('report').onclick = () => vscode.postMessage({type:'report'});
-$('issues').addEventListener('click', (event) => { const target = event.target.closest('button'); if (!target) return; if (target.dataset.details) $('advanced').open = true; if (target.dataset.repair) vscode.postMessage({type:'repair'}); });
+ $('issues').addEventListener('click', (event) => { const target = event.target.closest('button'); if (!target) return; if (target.dataset.details) $('advanced').open = true; if (target.dataset.repair) vscode.postMessage({type:'repair',kind:target.dataset.repairKind,server:target.dataset.server}); });
 window.addEventListener('message', (event) => { const message = event.data; if (message.type === 'loading') notice('正在检查当前项目和 TRAE 能力……'); if (message.type === 'data') render(message); if (message.type === 'probe') { lastProbe = message.probe; renderProbe(message.probe); } if (message.type === 'runtime') { if (lastData) lastData.runtime = message.evidence; renderRuntime(message.evidence); if (lastData) render(lastData); } if (message.type === 'contract') renderContracts(message.result); if (message.type === 'notice') notice(message.text, message.level); });
 </script>
 </body>

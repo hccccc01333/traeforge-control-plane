@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.9.0 — 2026-08-19
+
+- 新增 MCP command 可用性诊断，能识别 Node 命令不存在并给出本机候选路径。
+- 新增 MCP 修复预览和显式确认，应用前备份 `.trae/mcp.json`，配置变化时拒绝覆盖。
+- Doctor 问题卡支持“预览修复”，把 Diagnosis → Recommendation → Fix 串起来。
+
 ## 0.8.0 — 2026-08-19
 
 - 将 TRAE Activity Bar 入口重命名为 `TraeForge Doctor`。

@@ -1,4 +1,4 @@
-# TraeForge Doctor V0.8
+# TraeForge Doctor V0.9
 
 Skill、Rule、MCP 明明装了，TRAE 为什么还是不会用？TraeForge Doctor 点一下就告诉你哪里出了问题、为什么，以及下一步怎么修。
 
@@ -34,6 +34,7 @@ C:\Users\Hzz\.trae-cn\skills\trae-forge\
 - 当前项目 stdio MCP 的运行时工具列表探测
 - 读取 TRAE 日志并生成脱敏运行时证据摘要
 - Contract Test：作为底层诊断引擎，用控制任务和可观察后置条件验收 Rule、Skill、MCP 和工作流
+- MCP command 诊断：检测本机 Node 路径，提供备份、预览和确认后的配置修复
 
 ## 当前不做
 

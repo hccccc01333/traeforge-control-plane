@@ -1,4 +1,4 @@
-# TraeForge Doctor V0.8
+# TraeForge Doctor V0.9
 
 TRAE 的 Skill、Rule、MCP 不生效？打开 TraeForge Doctor，点一下检查，它会告诉你哪里出了问题、为什么，以及下一步怎么修。
 
@@ -10,6 +10,7 @@ TRAE 的 Skill、Rule、MCP 不生效？打开 TraeForge Doctor，点一下检�
 - 人话问题说明：文件存在、TRAE 是否加载、MCP Server 是否能启动
 - `重新检测`
 - 对全局 Skill 的安全修复：选择后复制到当前项目，覆盖前自动备份
+- 对本机 Node 路径错误的 MCP 提供修复预览，确认后备份并更新 `.trae/mcp.json`
 - `查看技术详情`：MCP 探测、TRAE 日志和实际效果验收
 
 ## 底层能力
@@ -19,7 +20,7 @@ TRAE 的 Skill、Rule、MCP 不生效？打开 TraeForge Doctor，点一下检�
 - 静态可见性诊断
 - 当前项目 stdio MCP 的运行时 `initialize/tools/list` 探测
 - 读取 TRAE 最新日志的脱敏运行时证据摘要：规则发现计数、MCP runtime 状态和已发生工具调用
-- V0.8 Contract Test：验收 Rule/Skill/MCP 和文件后置条件，未知状态不伪装成通过
+- V0.9 Contract Test：验收 Rule/Skill/MCP 和文件后置条件，未知状态不伪装成通过
 - JSON 报告生成
 - `.trae-plugin` 插件包选择、预览和确认安装
 - 已注册本地插件列表

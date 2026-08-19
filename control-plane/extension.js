@@ -7,6 +7,7 @@ const { readTraeRuntimeEvidence } = require('./runtimeEvidence');
 const { decodePowerShellOutput } = require('./powerShellEncoding');
 const { loadContract, evaluateContracts } = require('./contractTest');
 const { createDoctorHtml } = require('./doctorHtml');
+const { diagnoseProjectMcp, buildMcpFixPlan, applyMcpFix } = require('./mcpDiagnosis');
 
 const USER_HOME = process.env.USERPROFILE || process.env.HOME || '';
 const SKILL_SCRIPT = path.join(USER_HOME, '.trae-cn', 'skills', 'trae-forge', 'scripts', 'traepack.ps1');
@@ -162,7 +163,7 @@ class ControlPlaneViewProvider {
         } else if (message.type === 'contract') {
           await this.runContracts();
         } else if (message.type === 'repair') {
-          await this.autoRepair();
+          await this.autoRepair(message.kind, message.server);
         }
       } catch (error) {
         this.post({ type: 'notice', level: 'error', text: error.message || String(error) });
@@ -179,7 +180,8 @@ class ControlPlaneViewProvider {
     this.post({ type: 'loading' });
     const [scan, preflight, plugins] = await Promise.all([runScan(), runPreflight(), listPlugins()]);
     const runtime = readTraeRuntimeEvidence();
-    this.post({ type: 'data', scan, preflight, plugins, runtime });
+    const mcpDiagnosis = diagnoseProjectMcp(workspacePath());
+    this.post({ type: 'data', scan, preflight, plugins, runtime, mcpDiagnosis });
   }
 
   async pickAndInstall() {
@@ -252,7 +254,31 @@ class ControlPlaneViewProvider {
     this.post({ type: 'contract', result });
   }
 
-  async autoRepair() {
+  async repairMcp(serverName) {
+    const plan = buildMcpFixPlan(workspacePath(), serverName);
+    if (!plan) {
+      this.post({ type: 'notice', level: 'info', text: '当前 MCP 没有可安全自动修复的命令，请检查配置和 PATH。' });
+      return;
+    }
+    const answer = await vscode.window.showWarningMessage(
+      `检测到 ${plan.server} MCP 的 command 不可用。\n\n当前：${plan.from}\n建议：${plan.to}\n\n应用前会备份 .trae/mcp.json。是否预览并应用？`,
+      { modal: true },
+      '应用修复'
+    );
+    if (answer !== '应用修复') {
+      this.post({ type: 'notice', level: 'info', text: '已取消 MCP 修复，没有写入配置。' });
+      return;
+    }
+    const result = applyMcpFix(plan);
+    this.post({ type: 'notice', level: 'success', text: `已将 ${result.server} 的 command 更新为 ${result.to}，原配置已备份。正在重新检测……` });
+    await this.refresh();
+  }
+
+  async autoRepair(kind, serverName) {
+    if (kind === 'mcp-command' && serverName) {
+      await this.repairMcp(serverName);
+      return;
+    }
     const preflight = await runPreflight();
     const hasSkillInheritanceIssue = (preflight.diagnostics || []).some((item) => item.id === 'global-skill-inheritance-unknown');
     if (!hasSkillInheritanceIssue) {

@@ -2,7 +2,7 @@
   "name": "trae-forge-control-plane",
   "displayName": "TraeForge Doctor",
   "description": "Diagnose and fix why TRAE Skills, Rules, and MCP do not work.",
-  "version": "0.8.0",
+  "version": "0.9.0",
   "publisher": "traeforge-local",
   "private": true,
   "license": "MIT",
