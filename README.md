@@ -14,6 +14,14 @@ Current baseline: `v0.6.1`.
 
 The current UI provides static preflight diagnostics for project/global splits, tool-budget risk, duplicate MCP metadata, and the runtime boundary. It also offers an explicit-confirmation stdio MCP probe that sends only `initialize` and `tools/list`, plus a redacted TRAE log evidence summary for rule discovery, MCP toolhost state, and observed tool calls. Agent compliance and the final complete tool set remain explicit unknowns when TRAE does not log them.
 
+## Reality check
+
+This repository is an honest local prototype, not a claim that TRAE's model runtime is already fixed.
+
+It currently solves the file/runtime boundary: discovery, previews, backups, local package installation, static diagnostics, stdio MCP smoke probes, and log-based evidence summaries.
+
+It does not yet force a model to follow Rules, expose TRAE's complete private tool set, or make remote MCP behavior deterministic. The next product milestone is a contract-test loop: run a controlled Rule/Skill/MCP task, verify observable postconditions, and report or repair failures instead of treating file presence as success.
+
 ## Safety
 
 - Installation defaults to preview mode.
