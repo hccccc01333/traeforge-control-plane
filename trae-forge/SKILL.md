@@ -1,11 +1,11 @@
 ---
 name: trae-forge
-description: 本地优先的 TRAE 能力包与企业插件管理器。用于扫描、检查、校验、导出、生成 JSON 报告、预览安装和比较项目中的 Skills、Rules、MCP、脚本与模板，并管理 .trae-plugin 插件包；默认不删除文件，安装默认只预览。
+description: 本地优先的 TRAE 能力包与插件管理器。用于扫描、预检、诊断、校验、导出、生成 JSON 报告、预览安装和比较项目中的 Skills、Rules、MCP、脚本与模板，并管理 .trae-plugin 插件包；默认不删除文件，安装默认只预览。
 ---
 
 # TraeForge
 
-TraeForge 是一个面向 TRAE CN 的本地能力包和企业插件管理 Skill。它把项目中的 `.trae/skills`、`.trae/rules`、`.trae/mcp.json`、`AGENTS.md`、脚本和模板整理成可审查的 `.traepack` 文件，也提供 `.trae-plugin` 插件包，把 Skill、Rules、MCP 配置和二进制工具统一分发。
+TraeForge 是一个面向 TRAE CN 的本地能力包和插件管理 Skill。它把项目中的 `.trae/skills`、`.trae/rules`、`.trae/mcp.json`、`AGENTS.md`、脚本和模板整理成可审查的 `.traepack` 文件，也提供 `.trae-plugin` 插件包，把 Skill、Rules、MCP 配置和二进制工具统一分发。
 
 ## 安全边界
 
@@ -47,17 +47,20 @@ pwsh -File scripts/traepack.ps1 -Command inspect -PackPath .\my-agent.traepack
 # 校验能力包内文件是否缺失或被改动
 pwsh -File scripts/traepack.ps1 -Command validate -PackPath .\my-agent.traepack -Json
 
-# 打包企业插件（源目录需要 .trae-plugin/plugin.json）
+# 打包 TRAE 插件（源目录需要 .trae-plugin/plugin.json）
 pwsh -File scripts/traeplugin.ps1 -Command pack -SourcePath .\my-plugin -OutputPath .\my-plugin.trae-plugin
 
-# 校验企业插件
+# 校验 TRAE 插件
 pwsh -File scripts/traeplugin.ps1 -Command validate -PluginPath .\my-plugin.trae-plugin -Json
 
-# 预览企业插件安装；默认不写入
+# 预览 TRAE 插件安装；默认不写入
 pwsh -File scripts/traeplugin.ps1 -Command install -PluginPath .\my-plugin.trae-plugin -ProjectPath (Get-Location).Path -Json
 
 # 用户明确确认后应用安装
 pwsh -File scripts/traeplugin.ps1 -Command install -PluginPath .\my-plugin.trae-plugin -ProjectPath (Get-Location).Path -Apply
+
+# 诊断“为什么当前 Agent 可能看不到能力”
+pwsh -File scripts/traepack.ps1 -Command preflight -ProjectPath (Get-Location).Path -IncludeTraeGlobal -Json
 
 # 预览安装；不写入文件
 pwsh -File scripts/traepack.ps1 -Command install -PackPath .\my-agent.traepack -ProjectPath (Get-Location).Path

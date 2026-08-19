@@ -1,6 +1,6 @@
-# TraeForge Plugin V0.3
+# TraeForge Plugin V0.4
 
-这是一个本地优先的 TRAE 企业插件机制原型。插件包扩展名为 `.trae-plugin`，内部是 ZIP，统一携带：
+这是一个本地优先的 TRAE 插件机制原型。插件包扩展名为 `.trae-plugin`，内部是 ZIP，统一携带：
 
 - `skills/`：一个或多个 `SKILL.md`
 - `rules/`：项目级规则
@@ -60,7 +60,7 @@ C:\Users\Hzz\.trae-cn\traeforge\plugins\<id>\<version>\
   "id": "acme.code-review",
   "name": "Acme Code Review",
   "version": "0.1.0",
-  "description": "企业代码审查能力",
+  "description": "代码审查能力",
   "publisher": "Acme",
   "capabilities": ["skills", "rules", "mcp", "binaries"],
   "components": {

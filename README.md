@@ -10,9 +10,9 @@
 
 ## Status
 
-Current baseline: `v0.3.0`.
+Current baseline: `v0.4.0`.
 
-The current UI provides static preflight. Runtime MCP exposure, agent routing, and MTC/CODE context continuity remain the next upgrade target.
+The current UI provides static preflight diagnostics for project/global splits, tool-budget risk, duplicate MCP metadata, and the runtime boundary. Runtime MCP exposure, agent routing, and MTC/CODE context continuity remain the next upgrade target.
 
 ## Safety
 

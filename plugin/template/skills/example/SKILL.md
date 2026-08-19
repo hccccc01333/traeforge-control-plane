@@ -1,8 +1,8 @@
 ---
 name: example-enterprise-tool
-description: 示例企业能力插件。用户需要企业内部工具时使用。
+description: 示例 TRAE 插件 Skill。用户需要代码审查工具时使用。
 ---
 
 # Example Enterprise Tool
 
-这里放企业内部工作流说明。
+这里放可复用的 TRAE 工作流说明。

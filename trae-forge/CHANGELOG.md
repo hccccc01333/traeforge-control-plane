@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.4.0 — 2026-08-19
+
+- Added `preflight` and `doctor` diagnostics for project/global capability splits.
+- Added static MCP tool-count and schema-size budget risk checks.
+- Added explicit “runtime exposure still unknown” diagnostics instead of overstating static inventory.
+- Updated Control Plane copy from enterprise distribution to community pain-point diagnosis.
+
 ## 0.3.0 — 2026-08-19
 
 - Added the local `.trae-plugin` package format for Skills, Rules, MCP configuration, binaries, and assets.

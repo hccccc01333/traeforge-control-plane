@@ -1,6 +1,6 @@
-# TraeForge V0.3
+# TraeForge V0.4
 
-TraeForge 是一个安装在 TRAE CN 本地的 Skill 和 Control Plane 原型，用来盘点、分发和管理 Skills、Rules、MCP 以及企业 CLI 工具。
+TraeForge 是一个安装在 TRAE CN 本地的 Skill 和 Control Plane 原型，用来盘点、诊断、分发和管理 Skills、Rules、MCP 以及 CLI 工具。
 
 ## 本机安装位置
 
@@ -25,7 +25,7 @@ C:\Users\Hzz\.trae-cn\skills\trae-forge\
 - 导出前阻断疑似敏感信息
 - 安装前预览差异
 - 覆盖安装前创建备份
-- `.trae-plugin` 企业插件包：统一携带 Skill、Rules、MCP 和二进制工具
+- `.trae-plugin` 插件包：统一携带 Skill、Rules、MCP 和二进制工具
 - 插件包版本、文件哈希和本地注册表
 - MCP 配置显式确认后自动合并到当前项目
 - TRAE Activity Bar 中的 `TraeForge Control Plane` UI
@@ -43,6 +43,6 @@ C:\Users\Hzz\.trae-cn\skills\trae-forge\
 ## 后续方向
 
 1. MCP 运行时探针：检查当前 Agent 实际看得到哪些工具
-2. 私有企业插件市场和灰度通道
+2. 社区插件目录和版本通道
 3. 插件权限策略、签名和审批流
 4. Control Plane 的版本回滚 UI

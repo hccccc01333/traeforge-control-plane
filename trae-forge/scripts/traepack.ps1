@@ -1,7 +1,7 @@
 [CmdletBinding()]
 param(
     [Parameter(Position = 0)]
-    [ValidateSet('scan', 'export', 'inspect', 'validate', 'report', 'install', 'diff')]
+    [ValidateSet('scan', 'preflight', 'doctor', 'export', 'inspect', 'validate', 'report', 'install', 'diff')]
     [string]$Command = 'scan',
 
     [string]$ProjectPath = (Get-Location).Path,
@@ -21,7 +21,7 @@ param(
 
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
-$script:TraeForgeVersion = '0.2.0'
+$script:TraeForgeVersion = '0.4.0'
 
 function Resolve-FullPath {
     param([Parameter(Mandatory)][string]$Path)
@@ -166,6 +166,122 @@ function Find-Secrets {
         }
     }
     return @($findings)
+}
+
+function Get-ProjectMcpOverview {
+    param([Parameter(Mandatory)][string]$Root)
+    $path = Join-Path $Root '.trae\mcp.json'
+    if (-not (Test-Path -LiteralPath $path -PathType Leaf)) {
+        return [pscustomobject]@{ exists = $false; valid = $true; path = 'project/.trae/mcp.json'; servers = @(); error = $null }
+    }
+    try {
+        $config = Get-Content -Raw -LiteralPath $path | ConvertFrom-Json
+        $serverObject = if ($null -ne $config.mcpServers) { $config.mcpServers } else { $config }
+        $servers = @($serverObject.PSObject.Properties | ForEach-Object { [pscustomobject]@{ name = $_.Name; source = 'project'; status = 'configured' } })
+        return [pscustomobject]@{ exists = $true; valid = $true; path = 'project/.trae/mcp.json'; servers = $servers; error = $null }
+    } catch {
+        return [pscustomobject]@{ exists = $true; valid = $false; path = 'project/.trae/mcp.json'; servers = @(); error = $_.Exception.Message }
+    }
+}
+
+function Get-ProjectSkillOverview {
+    param([Parameter(Mandatory)][string]$Root)
+    $skillRoot = Join-Path $Root '.trae\skills'
+    if (-not (Test-Path -LiteralPath $skillRoot -PathType Container)) { return @() }
+    return @(Get-ChildItem -LiteralPath $skillRoot -Directory -Force | ForEach-Object {
+        $skillFile = Join-Path $_.FullName 'SKILL.md'
+        if (Test-Path -LiteralPath $skillFile -PathType Leaf) {
+            [pscustomobject]@{ name = $_.Name; source = 'project'; path = "project/.trae/skills/$($_.Name)/SKILL.md"; status = 'configured' }
+        }
+    })
+}
+
+function Get-GlobalSkillOverview {
+    $skillRoot = Join-Path $env:USERPROFILE '.trae-cn\skills'
+    if (-not (Test-Path -LiteralPath $skillRoot -PathType Container)) { return @() }
+    return @(Get-ChildItem -LiteralPath $skillRoot -Directory -Force | ForEach-Object {
+        $skillFile = Join-Path $_.FullName 'SKILL.md'
+        if (Test-Path -LiteralPath $skillFile -PathType Leaf) {
+            [pscustomobject]@{ name = $_.Name; source = 'global'; path = "global/skills/$($_.Name)/SKILL.md"; status = 'installed' }
+        }
+    })
+}
+
+function Get-GlobalMcpOverview {
+    $mcpRoot = Join-Path $env:USERPROFILE '.trae-cn\mcps'
+    $rows = [System.Collections.Generic.List[object]]::new()
+    if (-not (Test-Path -LiteralPath $mcpRoot -PathType Container)) { return @() }
+    Get-ChildItem -LiteralPath $mcpRoot -Recurse -File -Force -Filter 'SERVER_METADATA.json' | ForEach-Object {
+        $serverRoot = Split-Path -Parent $_.FullName
+        $metadata = $null
+        try { $metadata = Get-Content -Raw -LiteralPath $_.FullName | ConvertFrom-Json } catch { $metadata = $null }
+        $toolRoot = Join-Path $serverRoot 'tools'
+        $toolFiles = @()
+        if (Test-Path -LiteralPath $toolRoot -PathType Container) { $toolFiles = @(Get-ChildItem -LiteralPath $toolRoot -File -Force) }
+        $relative = Get-RelativePath -Root $mcpRoot -Path $_.FullName
+        [void]$rows.Add([pscustomobject]@{
+            name = if ($null -ne $metadata -and $metadata.server_name) { [string]$metadata.server_name } else { Split-Path -Leaf $serverRoot }
+            source = 'global'
+            metadataPath = "global/mcps/$relative"
+            toolCount = $toolFiles.Count
+            estimatedSchemaBytes = [int64](@($toolFiles | Measure-Object -Property Length -Sum).Sum)
+            toolNames = @($toolFiles | ForEach-Object { $_.BaseName } | Sort-Object)
+            status = 'discovered'
+        })
+    }
+    return @($rows | Sort-Object name, metadataPath)
+}
+
+function New-PreflightReport {
+    param([Parameter(Mandatory)][string]$Root)
+    $projectMcp = Get-ProjectMcpOverview -Root $Root
+    $projectSkills = @(Get-ProjectSkillOverview -Root $Root)
+    $globalSkills = @(Get-GlobalSkillOverview)
+    $globalMcp = @(Get-GlobalMcpOverview)
+    $diagnostics = [System.Collections.Generic.List[object]]::new()
+    $projectName = Split-Path -Leaf $Root
+    if ([string]::IsNullOrWhiteSpace($projectName)) { $projectName = 'trae-project' }
+
+    if (-not $projectMcp.valid) {
+        [void]$diagnostics.Add([pscustomobject]@{ id = 'project-mcp-invalid'; severity = 'error'; title = '项目 MCP 配置无法解析'; detail = $projectMcp.error; action = '修复 .trae/mcp.json 的 JSON 语法后重新预检。' })
+    } elseif (-not $projectMcp.exists -and $globalMcp.Count -gt 0) {
+        [void]$diagnostics.Add([pscustomobject]@{ id = 'global-project-split'; severity = 'warning'; title = '全局 MCP 与当前项目没有共同配置入口'; detail = "发现 $($globalMcp.Count) 个全局 MCP metadata，但当前项目没有 .trae/mcp.json；部分 TRAE 模式可能只读取项目级 MCP。"; action = '在当前项目配置需要使用的 MCP，或在 Agent 中验证全局能力是否真正可见。' })
+    }
+    if ($globalSkills.Count -gt 0 -and $projectSkills.Count -eq 0) {
+        [void]$diagnostics.Add([pscustomobject]@{ id = 'global-skill-inheritance-unknown'; severity = 'warning'; title = '全局 Skill 是否被当前模式继承仍未知'; detail = "发现 $($globalSkills.Count) 个全局 Skill，但当前项目没有项目级 Skill；静态文件存在不等于当前 Agent 已加载。"; action = '在当前对话中显式调用一个 Skill，或把关键 Skill 放到项目 .trae/skills/ 做对照测试。' })
+    }
+    $toolCount = [int64](@($globalMcp | Measure-Object -Property toolCount -Sum).Sum)
+    $schemaBytes = [int64](@($globalMcp | Measure-Object -Property estimatedSchemaBytes -Sum).Sum)
+    if ($toolCount -gt 40) {
+        [void]$diagnostics.Add([pscustomobject]@{ id = 'tool-budget-risk'; severity = 'warning'; title = '工具数量存在上下文预算风险'; detail = "当前静态 metadata 中估算出 $toolCount 个工具；工具过多时可能出现已连接但 Agent 不可见。"; action = '先关闭无关 MCP，再重新运行预检。' })
+    }
+    if ($schemaBytes -gt 8000) {
+        [void]$diagnostics.Add([pscustomobject]@{ id = 'schema-budget-risk'; severity = 'warning'; title = '工具描述存在上下文预算风险'; detail = "工具 Schema 文件总大小约 $schemaBytes 字节；描述过长可能挤占 Agent 工具上下文。"; action = '精简工具描述，或按任务拆分 MCP。' })
+    }
+    $duplicateNames = @($globalMcp | Group-Object name | Where-Object Count -gt 1)
+    foreach ($duplicate in $duplicateNames) {
+        [void]$diagnostics.Add([pscustomobject]@{ id = "duplicate-mcp-$($duplicate.Name)"; severity = 'warning'; title = "MCP 名称重复：$($duplicate.Name)"; detail = '多个全局 metadata 使用相同 server_name，模式切换时可能出现来源不清。'; action = '保留一个来源，或在项目配置中明确指定。' })
+    }
+    [void]$diagnostics.Add([pscustomobject]@{ id = 'runtime-boundary'; severity = 'info'; title = '运行时工具暴露仍需实际探针'; detail = '本次预检只读取公开配置、Skill 文件和 MCP metadata，不读取 TRAE 私有会话数据库，因此不能证明当前 Agent 最终可见的工具集合。'; action = '下一步通过一次真实 Agent/MCP 调用记录可见工具和调用结果。' })
+
+    $capabilities = @(
+        [pscustomobject]@{ id = 'project-mcp'; label = '项目 MCP'; scope = 'project'; configured = $projectMcp.exists; count = @($projectMcp.servers).Count; status = if (-not $projectMcp.exists) { 'missing' } elseif (-not $projectMcp.valid) { 'error' } else { 'configured' }; why = if (-not $projectMcp.exists) { '当前项目没有 .trae/mcp.json' } else { '项目配置已发现，但运行时继承仍需验证' } },
+        [pscustomobject]@{ id = 'global-mcp'; label = '全局 MCP metadata'; scope = 'global'; configured = ($globalMcp.Count -gt 0); count = $globalMcp.Count; status = if ($globalMcp.Count -eq 0) { 'missing' } else { 'discovered' }; why = if ($globalMcp.Count -eq 0) { '没有发现 SERVER_METADATA.json' } else { '已发现，但不等于当前 Agent 已暴露工具' } },
+        [pscustomobject]@{ id = 'project-skills'; label = '项目 Skills'; scope = 'project'; configured = ($projectSkills.Count -gt 0); count = $projectSkills.Count; status = if ($projectSkills.Count -eq 0) { 'missing' } else { 'configured' }; why = if ($projectSkills.Count -eq 0) { '当前项目没有 .trae/skills' } else { '项目 Skill 文件已发现' } },
+        [pscustomobject]@{ id = 'global-skills'; label = '全局 Skills'; scope = 'global'; configured = ($globalSkills.Count -gt 0); count = $globalSkills.Count; status = if ($globalSkills.Count -eq 0) { 'missing' } else { 'discovered' }; why = if ($globalSkills.Count -eq 0) { '全局目录没有 SKILL.md' } else { '全局 Skill 已发现，但运行时继承仍未知' } }
+    )
+    return [pscustomobject]@{
+        schemaVersion = 1
+        tool = 'TraeForge'
+        toolVersion = $script:TraeForgeVersion
+        generatedAt = [DateTime]::UtcNow.ToString('o')
+        project = [pscustomobject]@{ name = $projectName; mode = 'unknown'; modeReason = '没有读取 TRAE 私有会话状态' }
+        summary = [pscustomobject]@{ diagnostics = $diagnostics.Count; errors = @($diagnostics | Where-Object severity -eq 'error').Count; warnings = @($diagnostics | Where-Object severity -eq 'warning').Count; projectMcpServers = @($projectMcp.servers).Count; globalMcpServers = $globalMcp.Count; estimatedGlobalTools = $toolCount; estimatedSchemaBytes = $schemaBytes }
+        capabilities = $capabilities
+        mcpServers = [pscustomobject]@{ project = @($projectMcp.servers); global = $globalMcp }
+        skills = [pscustomobject]@{ project = $projectSkills; global = $globalSkills }
+        diagnostics = @($diagnostics)
+    }
 }
 
 function Get-SafeRecords {
@@ -551,6 +667,20 @@ switch ($Command) {
             New-ScanReport -Root $root -Records $records -Findings $findings | ConvertTo-Json -Depth 16
         } else {
             Show-Scan -Records $records -Findings $findings
+        }
+    }
+    'preflight' { 
+        $result = New-PreflightReport -Root $root
+        if ($Json) { $result | ConvertTo-Json -Depth 30 } else {
+            $result.summary | Format-List
+            $result.capabilities | Format-Table id,scope,count,status,why -Wrap -AutoSize
+            $result.diagnostics | Select-Object severity,title,detail,action | Format-Table -Wrap -AutoSize
+        }
+    }
+    'doctor' {
+        $result = New-PreflightReport -Root $root
+        if ($Json) { $result | ConvertTo-Json -Depth 30 } else {
+            $result.diagnostics | Select-Object severity,title,detail,action | Format-Table -Wrap -AutoSize
         }
     }
     'export' {

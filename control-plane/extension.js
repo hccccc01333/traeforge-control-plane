@@ -58,6 +58,19 @@ async function runScan() {
   return JSON.parse(output);
 }
 
+async function runPreflight() {
+  if (!fs.existsSync(SKILL_SCRIPT)) {
+    throw new Error(`找不到 TraeForge 诊断脚本：${SKILL_SCRIPT}`);
+  }
+  const output = await execPowerShell([
+    '-File', SKILL_SCRIPT,
+    '-Command', 'preflight',
+    '-ProjectPath', workspacePath(),
+    '-IncludeTraeGlobal', '-Json'
+  ]);
+  return JSON.parse(output);
+}
+
 async function runPlugin(command, pluginPath, apply) {
   if (!fs.existsSync(PLUGIN_SCRIPT)) {
     throw new Error(`找不到 TraeForge 插件脚本：${PLUGIN_SCRIPT}`);
@@ -128,8 +141,8 @@ class ControlPlaneViewProvider {
 
   async refresh() {
     this.post({ type: 'loading' });
-    const [scan, plugins] = await Promise.all([runScan(), listPlugins()]);
-    this.post({ type: 'data', scan, plugins });
+    const [scan, preflight, plugins] = await Promise.all([runScan(), runPreflight(), listPlugins()]);
+    this.post({ type: 'data', scan, preflight, plugins });
   }
 
   async pickAndInstall() {
@@ -196,13 +209,13 @@ tr:last-child td { border-bottom:0; }
 </head>
 <body>
 <h1>TraeForge Control Plane</h1>
-<div class="sub">单循环主模式 · 内部能力路由 · 本地企业插件机制 <span class="badge">静态预检 V0.3</span></div>
+<div class="sub">单循环主模式 · 能力可见性诊断 · 本地插件机制 <span class="badge">用户痛点预检 V0.4</span></div>
 <div class="toolbar"><button class="primary" id="refresh">刷新能力</button><button id="install">安装 .trae-plugin</button><button id="report">生成 JSON 报告</button></div>
 <div id="notice" class="notice">正在读取当前项目和 TRAE 全局能力……</div>
 <div id="cards" class="cards"></div>
 <h2>有效能力预览</h2>
 <div id="capabilities" class="panel"><div class="empty">等待扫描结果。</div></div>
-<h2>已注册企业插件</h2>
+<h2>已注册本地插件</h2>
 <div id="plugins" class="panel"><div class="empty">暂无插件注册记录。</div></div>
 <h2>为什么可能不可用</h2>
 <div id="diagnosis" class="panel"><div class="empty">扫描后显示诊断。</div></div>
@@ -213,28 +226,22 @@ function esc(value) { return String(value ?? '').replace(/[&<>"']/g, (c) => ({'&
 function notice(text, level='info') { $('notice').className = 'notice ' + level; $('notice').textContent = text; }
 function render(data) {
   const summary = data.scan.summary || {};
+  const preflight = data.preflight || {};
+  const preflightSummary = preflight.summary || {};
   const files = data.scan.files || [];
-  const groups = {};
-  files.forEach((file) => {
-    const key = file.packagePath.startsWith('global/skills/') ? '全局 Skills' : file.packagePath.startsWith('global/mcps/') ? '全局 MCP 文件' : file.packagePath.startsWith('global/plugin-manifests/') ? '已安装插件 manifest' : '项目能力';
-    groups[key] = (groups[key] || 0) + 1;
-  });
   $('cards').innerHTML = [
     ['全部文件', summary.files || 0, ''],
-    ['项目能力', summary.projectFiles || 0, ''],
-    ['全局能力', summary.globalFiles || 0, ''],
-    ['敏感命中', summary.secretFindings || 0, summary.secretFindings ? 'bad' : 'good']
+    ['项目 MCP', preflightSummary.projectMcpServers || 0, preflightSummary.projectMcpServers ? 'good' : 'warn'],
+    ['估算工具', preflightSummary.estimatedGlobalTools || 0, ''],
+    ['诊断警告', preflightSummary.warnings || 0, preflightSummary.warnings ? 'warn' : 'good']
   ].map(([label,value,cls]) => '<div class="card"><div class="label">'+label+'</div><div class="value '+cls+'">'+value+'</div></div>').join('');
-  $('capabilities').innerHTML = '<table><thead><tr><th>能力层</th><th>数量</th><th>当前判断</th></tr></thead><tbody>' + Object.entries(groups).map(([name,count]) => '<tr><td>'+esc(name)+'</td><td>'+count+'</td><td>'+esc(name === '项目能力' ? '当前工作区配置' : '已发现；运行时是否暴露需继续探测')+'</td></tr>').join('') + '</tbody></table>';
+  const capabilities = preflight.capabilities || [];
+  $('capabilities').innerHTML = '<table><thead><tr><th>能力层</th><th>数量</th><th>状态</th><th>为什么</th></tr></thead><tbody>' + capabilities.map((item) => '<tr><td>'+esc(item.label)+'</td><td>'+esc(item.count)+'</td><td>'+esc(item.status)+'</td><td>'+esc(item.why)+'</td></tr>').join('') + '</tbody></table>';
   const plugins = (data.plugins && data.plugins.plugins) || [];
-  $('plugins').innerHTML = plugins.length ? '<table><thead><tr><th>ID</th><th>名称</th><th>活动版本</th></tr></thead><tbody>' + plugins.map((p) => '<tr><td>'+esc(p.id)+'</td><td>'+esc(p.name)+'</td><td>'+esc(p.activeVersion)+'</td></tr>').join('') + '</tbody></table>' : '<div class="empty">暂无插件注册记录。可以点击“安装 .trae-plugin”导入企业插件。</div>';
-  const reasons = [];
-  if (summary.globalFiles) reasons.push('全局 Skills/MCP 已找到，但当前版本只能完成静态盘点；TRAE 当前 Agent 是否实际继承它们，还需要运行时探针。');
-  if (!summary.projectFiles) reasons.push('当前工作区没有项目级 TRAE 文件；如果当前模式不继承全局能力，Agent 可能看不到这些配置。');
-  if (summary.secretFindings) reasons.push('检测到疑似敏感信息，插件导出或安装前应先脱敏。');
-  if (!reasons.length) reasons.push('当前未发现静态配置异常。运行时调用失败时，下一步应查看工具暴露和 Agent 路由诊断。');
-  $('diagnosis').innerHTML = reasons.map((reason) => '<div class="notice">'+esc(reason)+'</div>').join('');
-  notice('扫描完成：'+(summary.files || 0)+' 个文件，敏感命中 '+(summary.secretFindings || 0)+'。','success');
+  $('plugins').innerHTML = plugins.length ? '<table><thead><tr><th>ID</th><th>名称</th><th>活动版本</th></tr></thead><tbody>' + plugins.map((p) => '<tr><td>'+esc(p.id)+'</td><td>'+esc(p.name)+'</td><td>'+esc(p.activeVersion)+'</td></tr>').join('') + '</tbody></table>' : '<div class="empty">暂无插件注册记录。可以点击“安装 .trae-plugin”导入本地插件。</div>';
+  const diagnostics = preflight.diagnostics || [];
+  $('diagnosis').innerHTML = diagnostics.length ? diagnostics.map((item) => '<div class="notice '+(item.severity === 'error' ? 'error' : item.severity === 'warning' ? '' : 'success')+'"><strong>'+esc(item.title)+'</strong><br>'+esc(item.detail)+'<br><span class="label">建议：'+esc(item.action)+'</span></div>').join('') : '<div class="empty">未发现静态诊断项。</div>';
+  notice('预检完成：'+(preflightSummary.warnings || 0)+' 条警告，运行时状态仍需实际调用验证。', preflightSummary.warnings ? 'info' : 'success');
 }
 $('refresh').onclick = () => vscode.postMessage({type:'refresh'});
 $('install').onclick = () => vscode.postMessage({type:'install'});
