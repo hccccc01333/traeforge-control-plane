@@ -1,0 +1,422 @@
+[
+  {
+    "id": "A01",
+    "tier": "A",
+    "category": "Skill",
+    "status": "PUBLIC-REPORTED",
+    "source": {
+      "url": "https://forum.trae.cn/t/topic/18956",
+      "title": "升级后部分 Skill 无法识别：frontmatter 字段兼容性报告"
+    },
+    "reportedAt": "2026-05-22",
+    "traeVersion": "TRAE SOLO CN 0.1.12",
+    "symptom": "已有多个 Skill，升级后只有部分 Skill 能被识别或调用。",
+    "expectedDiagnosis": [
+      "检查 Skill frontmatter 是否包含当前版本不支持或行为变化的字段。",
+      "把 Skill 文件存在、被发现和可被 Agent 调用分成三层检查。"
+    ],
+    "knownCause": "帖子用户后来定位到 triggers 和 allowed-tools 字段会影响识别；这是公开帖中的用户定位，不是 TraeForge 独立复现结论。",
+    "groundTruthStatus": "reported-user-resolution",
+    "reproducible": "not-yet-tested",
+    "traeforgeDetected": "not-yet-tested",
+    "diagnosisCorrect": "unknown",
+    "autoFixAvailable": "partial",
+    "postFixVerified": "not-yet-tested",
+    "limitations": [
+      "公开报告没有提供可直接运行的完整 Skill fixture。",
+      "当前 TRAE 私有发现和会话状态可能无法从公开日志重建。"
+    ]
+  },
+  {
+    "id": "A02",
+    "tier": "A",
+    "category": "Skill",
+    "status": "PUBLIC-REPORTED",
+    "source": {
+      "url": "https://forum.trae.cn/t/topic/17156",
+      "title": "Skill 文件存在但只有少量可调用：编码和 frontmatter 报告"
+    },
+    "reportedAt": "2026-05-12",
+    "traeVersion": "TRAE SOLO CN 0.1.9",
+    "symptom": "安装了很多 Skill，但能被识别和调用的数量明显少于文件数量。",
+    "expectedDiagnosis": [
+      "检查 UTF-8 BOM、frontmatter 边界和 YAML 引号。",
+      "区分文件扫描数量与可解析、可调用数量。"
+    ],
+    "knownCause": "帖子用户报告 UTF-8 BOM 和 description 中的中文双引号会造成解析问题；这是公开帖中的用户定位，不是 TraeForge 独立复现结论。",
+    "groundTruthStatus": "reported-user-resolution",
+    "reproducible": "not-yet-tested",
+    "traeforgeDetected": "not-yet-tested",
+    "diagnosisCorrect": "unknown",
+    "autoFixAvailable": "partial",
+    "postFixVerified": "not-yet-tested",
+    "limitations": [
+      "帖子没有留下可供本项目直接使用的原始文件。",
+      "编码问题可能依赖具体解析器、版本和操作系统。"
+    ]
+  },
+  {
+    "id": "A03",
+    "tier": "A",
+    "category": "MCP",
+    "status": "PUBLIC-REPORTED",
+    "source": {
+      "url": "https://forum.trae.cn/t/topic/17390",
+      "title": "MCP command 路径含空格导致启动失败"
+    },
+    "reportedAt": "2026-05-13",
+    "traeVersion": "TRAE 3.5.55",
+    "symptom": "MCP 配置看起来正确，但 Server 启动时报 EPIPE 或 command not found。",
+    "expectedDiagnosis": [
+      "检查 command 和参数是否在空格处被错误拆分。",
+      "报告可解析的 executable、PATH 和最终启动命令预览。"
+    ],
+    "knownCause": "帖子描述 command 路径含空格时被截断；用户建议使用无空格短路径或正确引用，这是公开报告中的处理方式。",
+    "groundTruthStatus": "reported-user-resolution",
+    "reproducible": "not-yet-tested",
+    "traeforgeDetected": "not-yet-tested",
+    "diagnosisCorrect": "unknown",
+    "autoFixAvailable": "partial",
+    "postFixVerified": "not-yet-tested",
+    "limitations": [
+      "Windows shell、Node 启动方式和 Trae 版本都会影响命令边界。",
+      "自动修复不能在未确认目标文件未被用户修改时覆盖配置。"
+    ]
+  },
+  {
+    "id": "A04",
+    "tier": "A",
+    "category": "MCP",
+    "status": "PUBLIC-REPORTED",
+    "source": {
+      "url": "https://forum.trae.cn/t/topic/21701",
+      "title": "MCP 工具数量过多时部分工具不可见"
+    },
+    "reportedAt": "2026-06-09",
+    "traeVersion": "not stated in post",
+    "symptom": "MCP 配置和 Server 看起来正常，但 Agent 只能看到或调用部分工具。",
+    "expectedDiagnosis": [
+      "统计 Server 返回的工具数量和描述字符预算。",
+      "把 Server 完整工具集合、TRAE 发现集合和当前实际调用集合分开显示。"
+    ],
+    "knownCause": "社区回复提到最多 40 个工具和约 8000 个描述字符的约束；该约束需按具体版本再次验证。",
+    "groundTruthStatus": "community-reported-constraint",
+    "reproducible": "not-yet-tested",
+    "traeforgeDetected": "not-yet-tested",
+    "diagnosisCorrect": "unknown",
+    "autoFixAvailable": "no",
+    "postFixVerified": "not-yet-tested",
+    "limitations": [
+      "工具上限和截断策略可能随 TRAE 版本变化。",
+      "达到预算后是否静默截断，不能只靠本地静态配置确认。"
+    ]
+  },
+  {
+    "id": "A05",
+    "tier": "A",
+    "category": "MCP",
+    "status": "PUBLIC-REPORTED",
+    "source": {
+      "url": "https://forum.trae.cn/t/topic/40173",
+      "title": "TRAE Work MCP 工具名称过长和环境差异报告"
+    },
+    "reportedAt": "2026-06-22",
+    "traeVersion": "TRAE Work CN 0.1.21",
+    "symptom": "同一 MCP 在不同环境表现不同，部分工具名称可能导致工具不可用。",
+    "expectedDiagnosis": [
+      "检查 server_name、tool_name 及拼接后的完整名称长度。",
+      "展示本地配置、元数据和 TRAE 可见名称的差异。"
+    ],
+    "knownCause": "帖子讨论了工具名称长度约束；具体阈值和失败方式必须按实际版本和运行时证据确认。",
+    "groundTruthStatus": "public-report-needs-runtime-confirmation",
+    "reproducible": "not-yet-tested",
+    "traeforgeDetected": "not-yet-tested",
+    "diagnosisCorrect": "unknown",
+    "autoFixAvailable": "no",
+    "postFixVerified": "not-yet-tested",
+    "limitations": [
+      "名称限制不是静态 JSON 校验就能证明的完整运行时结论。",
+      "不能把不同 TRAE 模式的 metadata 直接合并为一个最终工具集合。"
+    ]
+  },
+  {
+    "id": "A06",
+    "tier": "A",
+    "category": "MCP",
+    "status": "PUBLIC-REPORTED",
+    "source": {
+      "url": "https://forum.trae.cn/t/topic/22505",
+      "title": "Code 能用自定义 MCP，但 Work 模式不可用"
+    },
+    "reportedAt": "not extracted",
+    "traeVersion": "not stated in post",
+    "symptom": "同一自定义 MCP 在 Code 模式工作，在 Work 或其他模式不可用。",
+    "expectedDiagnosis": [
+      "识别当前 TRAE 模式并显示该模式是否支持项目自定义 MCP。",
+      "把产品模式限制与本地 Server 启动错误分开。"
+    ],
+    "knownCause": "帖子和支持回复将其描述为模式能力差异；这属于产品限制报告，不应伪装成配置错误。",
+    "groundTruthStatus": "public-report-needs-runtime-confirmation",
+    "reproducible": "not-yet-tested",
+    "traeforgeDetected": "not-yet-tested",
+    "diagnosisCorrect": "unknown",
+    "autoFixAvailable": "unsupported",
+    "postFixVerified": "not-applicable",
+    "limitations": [
+      "插件不能替 TRAE 增加官方未开放的模式能力。",
+      "需要在目标模式中做一次真实 Agent/MCP 验收。"
+    ]
+  },
+  {
+    "id": "A07",
+    "tier": "A",
+    "category": "Skill",
+    "status": "PUBLIC-REPORTED",
+    "source": {
+      "url": "https://forum.trae.cn/t/topic/1885",
+      "title": "用 npx 安装 Skill 时需要显式指定 trae-cn Agent"
+    },
+    "reportedAt": "not extracted",
+    "traeVersion": "not stated in post",
+    "symptom": "Skill 安装命令执行成功，但 Trae 中没有出现或没有生效。",
+    "expectedDiagnosis": [
+      "检查安装工具写入的是哪个 Agent 目录。",
+      "检查目标目录是否对应 TRAE CN，而不是其他 Agent 的 Skill 目录。"
+    ],
+    "knownCause": "公开讨论建议使用 npx skills add 时显式指定 --agent trae-cn；该命令行为应以当前安装器版本实测。",
+    "groundTruthStatus": "community-reported-practice",
+    "reproducible": "not-yet-tested",
+    "traeforgeDetected": "not-yet-tested",
+    "diagnosisCorrect": "unknown",
+    "autoFixAvailable": "partial",
+    "postFixVerified": "not-yet-tested",
+    "limitations": [
+      "第三方安装器版本和本机用户目录会影响安装结果。",
+      "写入全局 Skill 目录前必须明确展示目标路径并保留备份。"
+    ]
+  },
+  {
+    "id": "A08",
+    "tier": "A",
+    "category": "Environment",
+    "status": "PUBLIC-REPORTED",
+    "source": {
+      "url": "https://forum.trae.cn/t/topic/18161",
+      "title": "Skill、MCP 等配置无法跨设备完整同步"
+    },
+    "reportedAt": "not extracted",
+    "traeVersion": "not stated in post",
+    "symptom": "换设备、迁移或重新安装后，原有本地能力配置和数据不完整。",
+    "expectedDiagnosis": [
+      "明确哪些能力来自本地文件、哪些来自账号或云端。",
+      "在诊断结果中标记跨设备同步不属于本地插件可修复范围。"
+    ],
+    "knownCause": "公开讨论显示本地能力配置存在跨设备迁移或同步边界；具体范围需要按产品版本确认。",
+    "groundTruthStatus": "public-report-needs-product-confirmation",
+    "reproducible": "not-yet-tested",
+    "traeforgeDetected": "not-yet-tested",
+    "diagnosisCorrect": "unknown",
+    "autoFixAvailable": "unsupported",
+    "postFixVerified": "not-applicable",
+    "limitations": [
+      "本地插件不能承诺官方账号级同步。",
+      "备份和导出只能降低迁移成本，不能等价于云端同步。"
+    ]
+  },
+  {
+    "id": "B01",
+    "tier": "B",
+    "category": "Rule",
+    "status": "PUBLIC-REPORTED",
+    "source": {
+      "url": "https://forum.trae.cn/t/topic/170103",
+      "title": "全局 Rule 未自动加载，重新保存后才出现"
+    },
+    "reportedAt": "2026-07-23",
+    "traeVersion": "TRAE Work CN 0.1.38",
+    "symptom": "全局 Rule 文件存在，但新会话中看不到明确的加载证据；重新保存后行为发生变化。",
+    "expectedDiagnosis": [
+      "检查规则文件发现、加载、注入当前上下文和行为后置条件。",
+      "如果日志不能证明注入，显示 UNKNOWN，而不是 PASS。"
+    ],
+    "knownCause": "帖子中存在重新保存后生效的报告，但线程解释并不一致；根因保持 unknown。",
+    "groundTruthStatus": "conflicting-public-report",
+    "reproducible": "not-yet-tested",
+    "traeforgeDetected": "not-yet-tested",
+    "diagnosisCorrect": "unknown",
+    "autoFixAvailable": "partial",
+    "postFixVerified": "not-yet-tested",
+    "limitations": [
+      "日志可能只能证明发现，不能证明模型上下文注入或遵守。",
+      "模型行为验收需要单独的对话测试，不能由静态扫描替代。"
+    ]
+  },
+  {
+    "id": "B02",
+    "tier": "B",
+    "category": "Skill",
+    "status": "PUBLIC-REPORTED",
+    "source": {
+      "url": "https://forum.trae.cn/t/topic/20730",
+      "title": "已安装 Skill 但 Agent 不识别"
+    },
+    "reportedAt": "2026-06-03",
+    "traeVersion": "TRAE 0.1.15",
+    "symptom": "Skill 安装记录存在，但 Agent 不能识别、调用或在列表中展示。",
+    "expectedDiagnosis": [
+      "检查安装位置、文件名、frontmatter 和编码。",
+      "把已安装、已发现和已调用分别报告。"
+    ],
+    "knownCause": "公开讨论提出 BOM、YAML 等可能性，但没有稳定的最终根因。",
+    "groundTruthStatus": "public-report-no-final-root-cause",
+    "reproducible": "not-yet-tested",
+    "traeforgeDetected": "not-yet-tested",
+    "diagnosisCorrect": "unknown",
+    "autoFixAvailable": "partial",
+    "postFixVerified": "not-yet-tested",
+    "limitations": [
+      "不能把社区猜测写成诊断结论。",
+      "需要最小 Skill 文件和对应 TRAE 版本才能进入复现阶段。"
+    ]
+  },
+  {
+    "id": "B03",
+    "tier": "B",
+    "category": "Skill",
+    "status": "PUBLIC-REPORTED",
+    "source": {
+      "url": "https://forum.trae.cn/t/topic/19239",
+      "title": "Skill 在 UI、斜杠命令和 Agent 侧显示不一致"
+    },
+    "reportedAt": "2026-05-24",
+    "traeVersion": "TRAE SOLO CN 0.1.11 and follow-ups",
+    "symptom": "同一个 Skill 在 UI、斜杠命令和 Agent 可见列表中的结果不一致。",
+    "expectedDiagnosis": [
+      "枚举全局、项目和内置 Skill 来源。",
+      "检查同名、不同版本或目录优先级导致的发现链差异。"
+    ],
+    "knownCause": "帖子后续讨论了多目录、内置 Skill 和版本差异，但没有统一的运行时最终集合证据。",
+    "groundTruthStatus": "public-report-needs-runtime-confirmation",
+    "reproducible": "not-yet-tested",
+    "traeforgeDetected": "not-yet-tested",
+    "diagnosisCorrect": "unknown",
+    "autoFixAvailable": "partial",
+    "postFixVerified": "not-yet-tested",
+    "limitations": [
+      "静态目录扫描不能证明当前 Agent 实际收到的 Skill 集合。",
+      "同名资源的优先级必须在目标 TRAE 模式中验证。"
+    ]
+  },
+  {
+    "id": "B04",
+    "tier": "B",
+    "category": "MCP",
+    "status": "PUBLIC-REPORTED",
+    "source": {
+      "url": "https://forum.trae.cn/t/topic/19794",
+      "title": "MCP 配置和 Skill 触发条件满足，但 Agent 不调用工具"
+    },
+    "reportedAt": "2026-05-28",
+    "traeVersion": "not stated in post",
+    "symptom": "MCP 已配置，Skill 和触发条件看起来匹配，但 Agent 没有发起工具调用。",
+    "expectedDiagnosis": [
+      "区分 Server 启动、tools/list 可见、模型最终工具集合和实际 tool-call。",
+      "把没有调用标记为行为验收问题，而不是直接归因到 MCP 配置。"
+    ],
+    "knownCause": "公开报告没有提供足够运行时证据证明是配置、路由、模型决策还是工具可见性问题。",
+    "groundTruthStatus": "public-report-no-final-root-cause",
+    "reproducible": "not-yet-tested",
+    "traeforgeDetected": "not-yet-tested",
+    "diagnosisCorrect": "unknown",
+    "autoFixAvailable": "no",
+    "postFixVerified": "not-yet-tested",
+    "limitations": [
+      "工具曾被调用不等于完整工具集合对当前 Agent 可见。",
+      "模型是否遵守 Skill 或是否选择调用工具必须通过真实行为验收。"
+    ]
+  },
+  {
+    "id": "B05",
+    "tier": "B",
+    "category": "MCP",
+    "status": "PUBLIC-REPORTED",
+    "source": {
+      "url": "https://forum.trae.cn/t/topic/3164",
+      "title": "PowerBI MCP 在 TRAE 中只显示部分工具"
+    },
+    "reportedAt": "2026-03-26",
+    "traeVersion": "not stated in post",
+    "symptom": "PowerBI MCP 在其他客户端能看到更多工具，在 TRAE 中只识别到部分工具。",
+    "expectedDiagnosis": [
+      "对比 Server 返回工具数量、TRAE 发现数量和最终工具集合。",
+      "检查工具总量和描述字符预算是否触发截断。"
+    ],
+    "knownCause": "公开讨论将其与 TRAE 的工具数量或描述预算限制联系起来，但具体版本行为仍需复现。",
+    "groundTruthStatus": "public-report-needs-runtime-confirmation",
+    "reproducible": "not-yet-tested",
+    "traeforgeDetected": "not-yet-tested",
+    "diagnosisCorrect": "unknown",
+    "autoFixAvailable": "no",
+    "postFixVerified": "not-yet-tested",
+    "limitations": [
+      "需要同一 MCP、同一工具版本和同一 TRAE 模式做对比。",
+      "不能用本地 metadata 数量代替 TRAE 最终可见集合。"
+    ]
+  },
+  {
+    "id": "B06",
+    "tier": "B",
+    "category": "Environment",
+    "status": "PUBLIC-REPORTED",
+    "source": {
+      "url": "https://forum.trae.cn/t/topic/22606",
+      "title": "TRAE CN 与 TRAE Work 的 MCP 配置来源容易混淆"
+    },
+    "reportedAt": "not extracted",
+    "traeVersion": "not stated in post",
+    "symptom": "在一个 TRAE 版本或模式中配置的 MCP，在另一个版本或模式中找不到或不生效。",
+    "expectedDiagnosis": [
+      "显示当前应用、模式、项目路径和实际读取的 mcp.json 来源。",
+      "标记“配置存在”与“当前模式读取”之间的差异。"
+    ],
+    "knownCause": "公开报告指向 TRAE CN、TRAE Work 和不同运行时配置来源的混淆；具体路径必须在本机证据中确认。",
+    "groundTruthStatus": "public-report-needs-local-evidence",
+    "reproducible": "not-yet-tested",
+    "traeforgeDetected": "not-yet-tested",
+    "diagnosisCorrect": "unknown",
+    "autoFixAvailable": "partial",
+    "postFixVerified": "not-yet-tested",
+    "limitations": [
+      "不同发行版的私有目录可能变化。",
+      "自动复制配置前必须让用户确认目标模式和目标路径。"
+    ]
+  },
+  {
+    "id": "B07",
+    "tier": "B",
+    "category": "MCP",
+    "status": "PUBLIC-REPORTED",
+    "source": {
+      "url": "https://forum.trae.cn/t/topic/626",
+      "title": "GitLab MCP 相同 JSON 在其他客户端可用但在 TRAE 中不可用"
+    },
+    "reportedAt": "not extracted",
+    "traeVersion": "not stated in post",
+    "symptom": "同一份 GitLab MCP 配置在其他客户端正常，在 TRAE 中启动或工具调用失败。",
+    "expectedDiagnosis": [
+      "记录 TRAE 实际采用的 command、环境变量、transport 和 initialize 结果。",
+      "比较客户端差异，不仅检查 JSON 语法。"
+    ],
+    "knownCause": "公开报告未给出可直接确认的唯一根因，可能涉及环境变量、启动方式、传输协议或工具暴露差异。",
+    "groundTruthStatus": "public-report-no-final-root-cause",
+    "reproducible": "not-yet-tested",
+    "traeforgeDetected": "not-yet-tested",
+    "diagnosisCorrect": "unknown",
+    "autoFixAvailable": "partial",
+    "postFixVerified": "not-yet-tested",
+    "limitations": [
+      "需要脱敏后的 GitLab MCP 配置和不含凭据的启动日志。",
+      "跨客户端可用不等于 TRAE 当前模式具备相同 MCP 能力。"
+    ]
+  }
+]

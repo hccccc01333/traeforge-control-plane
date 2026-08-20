@@ -1,0 +1,23 @@
+{
+  "required": [
+    "id",
+    "status",
+    "source",
+    "reportedAt",
+    "traeVersion",
+    "symptom",
+    "expected",
+    "knownCause",
+    "reproducible",
+    "traeforgeDetected",
+    "diagnosisCorrect",
+    "autoFixAvailable",
+    "postFixVerified",
+    "limitations"
+  ],
+  "statuses": ["PUBLIC-REPORTED", "REPORTED", "REPRODUCED", "DIAGNOSED", "FIXED", "VERIFIED", "UNSUPPORTED"],
+  "publicCaseStatuses": ["PUBLIC-REPORTED", "REPORTED", "REPRODUCED", "DIAGNOSED", "FIXED", "VERIFIED", "UNSUPPORTED"],
+  "benchmarkStatuses": ["NOT_RUN", "PASS", "FAIL", "UNKNOWN", "UNSUPPORTED"],
+  "triState": ["yes", "no", "unknown", "not-yet-tested", "partial", "unsupported", "not-applicable"],
+  "sourceRequired": ["url", "title"]
+}

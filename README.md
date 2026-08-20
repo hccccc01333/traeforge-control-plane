@@ -16,6 +16,16 @@ Current baseline: `v0.9.0`.
 
 The current Doctor UI shows human-readable status for Skills, Rules, and MCP, lists problems with concrete next steps, and offers safe repair flows for global Skills and missing local Node commands in MCP configuration. Advanced details still provide static preflight diagnostics, an explicit-confirmation stdio MCP probe, a redacted TRAE log evidence summary, and Contract Test checks.
 
+## Public-reported benchmark pool
+
+`benchmarks/` contains 15 cases collected from public TRAE Chinese Community reports and 10 first-pass TraeForge benchmark definitions (`TF-001` through `TF-010`).
+
+Every case starts as `PUBLIC-REPORTED`. That means the symptom was publicly reported; it does not mean TraeForge has reproduced it, confirmed the root cause, or fixed it. The repository keeps public report, local detection, runtime reproduction, diagnosis, repair, and verification as separate evidence states.
+
+Validate the pool with:
+
+    node .\benchmarks\validate.js
+
 ## Reality check
 
 This repository is an honest local prototype, not a claim that TRAE's model runtime is already fixed.

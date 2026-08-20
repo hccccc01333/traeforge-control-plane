@@ -1,0 +1,92 @@
+[
+  {
+    "id": "TF-001",
+    "title": "Skill frontmatter schema compatibility",
+    "sourceCases": ["A01"],
+    "detector": "skill-frontmatter",
+    "expectedEvidence": ["parsed frontmatter", "unsupported fields", "discovery result"],
+    "status": "NOT_RUN",
+    "limitations": ["Static parsing cannot prove the current Agent received the Skill."]
+  },
+  {
+    "id": "TF-002",
+    "title": "Skill UTF-8 BOM detection",
+    "sourceCases": ["A02"],
+    "detector": "encoding-and-frontmatter",
+    "expectedEvidence": ["byte order mark", "encoding", "parse result"],
+    "status": "NOT_RUN",
+    "limitations": ["A clean encoding check does not prove TRAE runtime loading."]
+  },
+  {
+    "id": "TF-003",
+    "title": "Skill YAML special-character safety",
+    "sourceCases": ["A02"],
+    "detector": "frontmatter-parser",
+    "expectedEvidence": ["YAML parse error", "field and line", "safe normalization preview"],
+    "status": "NOT_RUN",
+    "limitations": ["Parser behavior may differ by TRAE release."]
+  },
+  {
+    "id": "TF-004",
+    "title": "Skill multi-source and version conflict",
+    "sourceCases": ["A01", "B03"],
+    "detector": "inventory-hash-conflict",
+    "expectedEvidence": ["source path", "name", "version or hash", "priority"],
+    "status": "NOT_RUN",
+    "limitations": ["Inventory overlap is not proof of the final Agent priority."]
+  },
+  {
+    "id": "TF-005",
+    "title": "MCP command path with spaces",
+    "sourceCases": ["A03"],
+    "detector": "command-argument-boundary",
+    "expectedEvidence": ["raw command", "parsed executable", "argument boundary", "launch preview"],
+    "status": "NOT_RUN",
+    "limitations": ["A safe preview must not execute an untrusted command."]
+  },
+  {
+    "id": "TF-006",
+    "title": "MCP executable and PATH resolution",
+    "sourceCases": ["A03", "B07"],
+    "detector": "mcp-command-resolution",
+    "expectedEvidence": ["command lookup", "candidate executable", "environment summary", "backup plan"],
+    "status": "NOT_RUN",
+    "limitations": ["A candidate executable is not proof that TRAE can start the Server."]
+  },
+  {
+    "id": "TF-007",
+    "title": "MCP tool count and description budget",
+    "sourceCases": ["A04", "B05"],
+    "detector": "tool-count-and-schema-budget",
+    "expectedEvidence": ["tools/list count", "description character count", "visible subset", "truncation warning"],
+    "status": "NOT_RUN",
+    "limitations": ["The reported limits may be version-specific and require runtime probing."]
+  },
+  {
+    "id": "TF-008",
+    "title": "MCP server and tool name length",
+    "sourceCases": ["A05"],
+    "detector": "server-tool-name-length",
+    "expectedEvidence": ["server name", "tool name", "combined name", "configured threshold"],
+    "status": "NOT_RUN",
+    "limitations": ["The threshold must be learned from the target TRAE runtime, not guessed globally."]
+  },
+  {
+    "id": "TF-009",
+    "title": "MCP configured but Agent did not call",
+    "sourceCases": ["B04"],
+    "detector": "tool-exposed-vs-tool-called",
+    "expectedEvidence": ["Server start", "tools/list", "final visible set", "tool-call event", "behavior verdict"],
+    "status": "NOT_RUN",
+    "limitations": ["No tool-call cannot by itself distinguish routing, model choice, policy, or user prompt causes."]
+  },
+  {
+    "id": "TF-010",
+    "title": "Global Rule reload and behavior evidence",
+    "sourceCases": ["B01"],
+    "detector": "rule-discovery-vs-postcondition",
+    "expectedEvidence": ["rule discovery", "context injection evidence", "behavior test", "session identifier"],
+    "status": "NOT_RUN",
+    "limitations": ["Logs may prove discovery but not model compliance; behavior acceptance is required."]
+  }
+]
