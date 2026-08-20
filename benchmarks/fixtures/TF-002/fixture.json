@@ -1,0 +1,17 @@
+{
+  "id": "TF-002",
+  "detector": "encoding-and-frontmatter",
+  "description": "Detect the UTF-8 BOM condition described by a public Skill report.",
+  "input": {
+    "skillPath": "skills/bom-case/SKILL.md",
+    "rawPrefixHex": "EFBBBF",
+    "frontmatter": {
+      "name": "bom-case",
+      "description": "A minimal BOM fixture"
+    }
+  },
+  "expected": {
+    "status": "PASS",
+    "classification": "issue-detected"
+  }
+}

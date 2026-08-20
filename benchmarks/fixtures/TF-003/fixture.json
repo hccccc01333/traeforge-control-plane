@@ -1,0 +1,14 @@
+{
+  "id": "TF-003",
+  "detector": "frontmatter-parser",
+  "description": "Detect an unquoted YAML-like value containing a colon.",
+  "input": {
+    "frontmatterText": "---\nname: yaml-risk\ndescription: value: with a colon\n---\n",
+    "field": "description",
+    "expectedParserRisk": "unquoted-colon"
+  },
+  "expected": {
+    "status": "PASS",
+    "classification": "issue-detected"
+  }
+}

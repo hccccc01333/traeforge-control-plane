@@ -6,6 +6,12 @@ const schema = JSON.parse(fs.readFileSync(path.join(root, 'schema.json'), 'utf8'
 const caseDirs = fs.readdirSync(root, { withFileTypes: true })
   .filter((entry) => entry.isDirectory() && /^C\d{3}-/.test(entry.name))
   .map((entry) => path.join(root, entry.name));
+const fixtureRoot = path.join(root, 'fixtures');
+const fixtureDirs = fs.existsSync(fixtureRoot)
+  ? fs.readdirSync(fixtureRoot, { withFileTypes: true })
+    .filter((entry) => entry.isDirectory() && /^TF-\d{3}$/.test(entry.name))
+    .map((entry) => entry.name)
+  : [];
 const errors = [];
 
 function readJson(filePath, label) {
@@ -50,6 +56,7 @@ if (Array.isArray(publicCases)) {
 const manifest = readJson(path.join(root, 'tf-manifest.json'), 'tf-manifest.json');
 if (Array.isArray(manifest)) {
   if (manifest.length !== 10) errors.push('TF 基准数量应为 10，实际为 ' + manifest.length);
+  if (fixtureDirs.length !== manifest.length) errors.push('TF fixture 数量应为 ' + manifest.length + '，实际为 ' + fixtureDirs.length);
   const ids = new Set();
   for (const item of manifest) {
     const label = item.id || '未命名基准';
@@ -63,6 +70,8 @@ if (Array.isArray(manifest)) {
     if (!schema.benchmarkStatuses.includes(item.status)) errors.push(label + ' status 不合法：' + item.status);
     if (!Array.isArray(item.expectedEvidence) || item.expectedEvidence.length === 0) errors.push(label + ' expectedEvidence 必须是非空数组');
     if (!Array.isArray(item.limitations) || item.limitations.length === 0) errors.push(label + ' limitations 必须是非空数组');
+    const fixturePath = path.join(root, 'fixtures', item.id, 'fixture.json');
+    if (!fs.existsSync(fixturePath)) errors.push(label + ' 缺少最小 fixture：fixtures/' + item.id + '/fixture.json');
   }
 }
 for (const caseDir of caseDirs) {
@@ -87,7 +96,8 @@ if (errors.length) {
   console.log(JSON.stringify({
     publicCases: Array.isArray(publicCases) ? publicCases.length : 0,
     benchmarkCases: Array.isArray(manifest) ? manifest.length : 0,
-    fixtureDirectories: caseDirs.length,
+    fixtureCount: fixtureDirs.length,
+    legacyFixtureDirectories: caseDirs.length,
     status: 'valid'
   }));
 }

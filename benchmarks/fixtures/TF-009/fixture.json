@@ -1,0 +1,16 @@
+{
+  "id": "TF-009",
+  "detector": "tool-exposed-vs-tool-called",
+  "description": "Show that exposure evidence without a tool call cannot prove Agent behavior.",
+  "input": {
+    "serverStarted": true,
+    "toolsListed": ["gitlab_search"],
+    "finalVisibleTools": ["gitlab_search"],
+    "toolCalls": [],
+    "expectedTool": "gitlab_search"
+  },
+  "expected": {
+    "status": "UNKNOWN",
+    "classification": "behavior-unproven"
+  }
+}

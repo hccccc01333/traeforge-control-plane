@@ -1,0 +1,15 @@
+{
+  "id": "TF-010",
+  "detector": "rule-discovery-vs-postcondition",
+  "description": "Show that a Rule discovery event without injection or behavior evidence remains unknown.",
+  "input": {
+    "ruleDiscovered": true,
+    "contextInjected": null,
+    "behaviorObserved": null,
+    "rulePath": ".trae/rules/python.md"
+  },
+  "expected": {
+    "status": "UNKNOWN",
+    "classification": "behavior-unproven"
+  }
+}

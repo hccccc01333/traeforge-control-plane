@@ -1,0 +1,21 @@
+{
+  "id": "TF-001",
+  "detector": "skill-frontmatter",
+  "description": "Detect frontmatter fields reported as incompatible after a TRAE Skill update.",
+  "input": {
+    "skill": {
+      "name": "compat-check",
+      "frontmatter": {
+        "name": "compat-check",
+        "description": "A minimal compatibility fixture",
+        "triggers": ["compatibility"],
+        "allowed-tools": ["filesystem.read"]
+      }
+    },
+    "unsupportedFields": ["triggers", "allowed-tools"]
+  },
+  "expected": {
+    "status": "PASS",
+    "classification": "issue-detected"
+  }
+}

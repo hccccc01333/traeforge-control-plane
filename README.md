@@ -26,6 +26,12 @@ Validate the pool with:
 
     node .\benchmarks\validate.js
 
+Run all ten deterministic minimal fixtures with:
+
+    node .\benchmarks\run-fixtures.js
+
+The fixture runner treats PASS as “the detector recognized the synthetic issue.” TF-009 and TF-010 intentionally return UNKNOWN because tool visibility or Rule discovery alone cannot prove Agent behavior.
+
 ## Reality check
 
 This repository is an honest local prototype, not a claim that TRAE's model runtime is already fixed.

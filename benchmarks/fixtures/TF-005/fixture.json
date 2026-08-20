@@ -1,0 +1,15 @@
+{
+  "id": "TF-005",
+  "detector": "command-argument-boundary",
+  "description": "Detect a command path with spaces that was split before launch.",
+  "input": {
+    "rawCommand": "C:\\Program Files\\Node\\node.exe",
+    "parsedExecutable": "C:\\Program",
+    "arguments": ["Files\\Node\\node.exe"],
+    "quoted": false
+  },
+  "expected": {
+    "status": "PASS",
+    "classification": "issue-detected"
+  }
+}

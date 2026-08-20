@@ -34,6 +34,14 @@ REPORTED → REPRODUCED → DIAGNOSED → FIXED → VERIFIED
 
 ## 运行结构校验
 
+## 运行最小 fixture
+
+fixtures/TF-001 到 fixtures/TF-010 是脱敏、合成的最小输入，不是社区用户原始项目。运行器会输出检测器的证据分类：
+
+    node .\benchmarks\run-fixtures.js
+
+其中 PASS 表示检测器正确识别了 fixture 设计的问题；UNKNOWN 表示证据不足以证明 TRAE 运行时行为，正是 TF-009 和 TF-010 要保留的边界。
+
 ```powershell
 node .\benchmarks\validate.js
 ```

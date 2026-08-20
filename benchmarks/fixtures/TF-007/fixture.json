@@ -1,0 +1,18 @@
+{
+  "id": "TF-007",
+  "detector": "tool-count-and-schema-budget",
+  "description": "Detect both reported MCP visibility budgets in a synthetic tools/list summary.",
+  "input": {
+    "toolCount": 41,
+    "descriptionChars": 8200,
+    "limits": {
+      "maxTools": 40,
+      "maxDescriptionChars": 8000
+    },
+    "visibleToolCount": 40
+  },
+  "expected": {
+    "status": "PASS",
+    "classification": "issue-detected"
+  }
+}

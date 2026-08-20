@@ -1,0 +1,25 @@
+{
+  "id": "TF-004",
+  "detector": "inventory-hash-conflict",
+  "description": "Detect two Skill sources with the same name but different versions.",
+  "input": {
+    "skills": [
+      {
+        "name": "release-review",
+        "version": "1.0.0",
+        "source": "global",
+        "contentHash": "sha256:aaa"
+      },
+      {
+        "name": "release-review",
+        "version": "2.0.0",
+        "source": "project",
+        "contentHash": "sha256:bbb"
+      }
+    ]
+  },
+  "expected": {
+    "status": "PASS",
+    "classification": "issue-detected"
+  }
+}

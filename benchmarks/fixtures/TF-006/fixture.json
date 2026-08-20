@@ -1,0 +1,18 @@
+{
+  "id": "TF-006",
+  "detector": "mcp-command-resolution",
+  "description": "Detect an unresolved node command while a safe candidate path is known.",
+  "input": {
+    "command": "node",
+    "pathHits": [],
+    "candidatePaths": ["C:\\fixture-runtime\\node.exe"],
+    "environment": {
+      "platform": "win32",
+      "pathContainsCommand": false
+    }
+  },
+  "expected": {
+    "status": "PASS",
+    "classification": "issue-detected"
+  }
+}

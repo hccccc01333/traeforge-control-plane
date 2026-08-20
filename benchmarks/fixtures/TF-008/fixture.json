@@ -1,0 +1,14 @@
+{
+  "id": "TF-008",
+  "detector": "server-tool-name-length",
+  "description": "Detect a server and tool name whose combined runtime name exceeds the fixture limit.",
+  "input": {
+    "serverName": "enterprise_data_connector",
+    "toolName": "search_records_with_long_filter_description",
+    "maxCombinedLength": 60
+  },
+  "expected": {
+    "status": "PASS",
+    "classification": "issue-detected"
+  }
+}
